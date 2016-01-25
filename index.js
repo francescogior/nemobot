@@ -48,15 +48,17 @@ function getIssuesWithAssignedPR() {
 }
 
 function processInReviewIssues() {
-  Rx.Observable.interval(frequency)
-    .flatMap(getIssuesWithAssignedPR)
+  return getIssuesWithAssignedPR()
     .map(issuesWithoutLabel('in review'))
-    .subscribe(issues => {
+    .do(issues => {
       prettifierLog(`Adding 'in review' label to ${issues.length} issues`);
       issues.forEach(issue => {
-        return addLabelsToIssue(['in review'], issue).catch(httpLog);
+        addLabelsToIssue(['in review'], issue).catch(httpLog);
       });
     });
 }
 
-processInReviewIssues();
+prettifierLog('Starting the watch');
+Rx.Observable.timer(0, frequency)
+  .flatMap(processInReviewIssues)
+  .subscribe();
