@@ -30,6 +30,14 @@ function issuesWithAssignee(issues) {
   return issues.filter(issue => !!issue.assignee);
 }
 
+function issuesWithoutAssignee(issues) {
+  return issues.filter(issue => !issue.assignee);
+}
+
+function issuesWithLabel(label) {
+  return issues => issues.filter(issue => issue.labels.map(l => l.name).indexOf(label) !== -1);
+}
+
 function issuesWithoutLabel(label) {
   return issues => issues.filter(issue => issue.labels.map(l => l.name).indexOf(label) === -1);
 }
@@ -39,26 +47,31 @@ function addLabelsToIssue(labels, issue) {
   return Rx.Observable.fromPromise(p);
 }
 
-function getIssuesWithAssignedPR() {
-  const issues$ = getAllIssues();
-  const pulls$ = getAllPRs();
-  return issues$.combineLatest(pulls$).map(([issues, pulls]) => {
-    return issuesWithAssignee(issuesWithPR(issues, pulls));
-  });
+function removeLabelFromIssue(label, issue) {
+  const p = github.repos(org, repo).issues(issue.number).labels(label).remove();
+  return Rx.Observable.fromPromise(p);
 }
 
-function processInReviewIssues() {
-  return getIssuesWithAssignedPR()
-    .map(issuesWithoutLabel('in review'))
-    .do(issues => {
-      prettifierLog(`Adding 'in review' label to ${issues.length} issues`);
-      issues.forEach(issue => {
-        addLabelsToIssue(['in review'], issue).catch(httpLog);
-      });
-    });
+function processInReviewIssues(issues, pulls) {
+  prettifierLog(`Processing ${issues.length} issues`);
+
+  const labelToAdd = issuesWithoutLabel('in review')(issuesWithPR(issues, issuesWithAssignee(pulls)));
+  const labelToRemove = issuesWithLabel('in review')(issuesWithPR(issues, issuesWithoutAssignee(pulls)));
+
+  labelToAdd.forEach(issue => {
+    prettifierLog(`Adding 'in review' label to issue #${issue.number}`);
+    addLabelsToIssue(['in review'], issue).catch(httpLog);
+  });
+
+  labelToRemove.forEach(issue => {
+    prettifierLog(`Removing 'in review' label from issue #${issue.number}`);
+    removeLabelFromIssue('in review', issue).catch(httpLog);
+  });
 }
 
 prettifierLog('Starting the watch');
 Rx.Observable.timer(0, frequency)
-  .flatMap(processInReviewIssues)
-  .subscribe();
+  .flatMap(() => Rx.Observable.combineLatest(getAllIssues(), getAllPRs()))
+  .subscribe(([issues, pulls]) => {
+    processInReviewIssues(issues, pulls);
+  });
