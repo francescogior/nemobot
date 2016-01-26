@@ -5,29 +5,53 @@ const config = require('./config.json');
 
 const prettifierLog = debug('prettifier');
 const reviewStateLog = debug('prettifier:review state');
-const httpLog = x => debug('http')(JSON.prettify(x, null, 2));
+const _httpLog = debug('http');
+const httpLog = x => _httpLog(JSON.stringify(x, null, 2));
 
 function configForRepo(name) {
-  const { owner, token, repos, apiURL } = config;
+  const { org, token, repos, apiURL } = config;
   const repo = repos.filter(r => r.name === name)[0];
   return {
     name,
-    owner: repo.owner || owner,
+    org: repo && repo.org || org,
     github: new Octokat({
-      token: repo.token || token,
-      rootURL: repo.apiURL || apiURL
+      token: repo && repo.token || token,
+      rootURL: repo && repo.apiURL || apiURL
     })
   };
 }
 
+// adapted from https://github.com/philschatz/octokat.js/issues/38#issuecomment-116799519
+function fetchAll(fn, args, acc = []) {
+  const p = new Promise((resolve, reject) => {
+    fn(args).then((val) => {
+      if (val.nextPage) {
+        fetchAll(val.nextPage, args, acc.concat(val)).then(resolve, reject);
+      } else {
+        resolve(acc.concat(val));
+      }
+    }, reject);
+  });
+  return p;
+}
+
+function getAllRepos(org) {
+  const { token, apiURL: rootURL } = config;
+  const github = new Octokat({ token, rootURL });
+  return Rx.Observable.fromPromise(fetchAll(github.orgs(org).repos.fetch))
+  .flatMap(repos => Rx.Observable.from(repos));
+}
+
 function getAllIssues(repoName) {
-  const { github, owner, name } = configForRepo(repoName);
-  return Rx.Observable.fromPromise(github.repos(owner, name).issues.fetch());
+  const { github, org, name } = configForRepo(repoName);
+  return Rx.Observable.fromPromise(
+    fetchAll(github.repos(org, name).issues.fetch, { state: 'open' })
+  ).map(issues => issues.filter(issue => !issue.pullRequest));
 }
 
 function getAllPRs(repoName) {
-  const { github, owner, name } = configForRepo(repoName);
-  return Rx.Observable.fromPromise(github.repos(owner, name).pulls.fetch());
+  const { github, org, name } = configForRepo(repoName);
+  return Rx.Observable.fromPromise(fetchAll(github.repos(org, name).pulls.fetch));
 }
 
 function issuesWithPR(issues, pulls) {
@@ -55,14 +79,14 @@ function issuesWithoutLabel(label) {
 }
 
 function addLabelsToIssue(repoName, labels, issue) {
-  const { github, owner, name } = configForRepo(repoName);
-  const p = github.repos(owner, name).issues(issue.number).labels.create(labels);
+  const { github, org, name } = configForRepo(repoName);
+  const p = github.repos(org, name).issues(issue.number).labels.create(labels);
   return Rx.Observable.fromPromise(p);
 }
 
 function removeLabelFromIssue(repoName, label, issue) {
-  const { github, owner, name } = configForRepo(repoName);
-  const p = github.repos(owner, name).issues(issue.number).labels(label).remove();
+  const { github, org, name } = configForRepo(repoName);
+  const p = github.repos(org, name).issues(issue.number).labels(label).remove();
   return Rx.Observable.fromPromise(p);
 }
 
@@ -83,13 +107,13 @@ function processInReviewIssues(repoName, issues, pulls) {
 
 prettifierLog('Starting the watch');
 Rx.Observable.timer(0, config.frequency)
-  .flatMap(() => Rx.Observable.from(config.repos.map(r => r.name)))
+  .flatMap(() => getAllRepos(config.org))
   .flatMap(repo => Rx.Observable.combineLatest(
     Rx.Observable.just(repo),
-    getAllIssues(repo),
-    getAllPRs(repo))
+    getAllIssues(repo.name),
+    getAllPRs(repo.name))
   )
   .subscribe(([repo, issues, pulls]) => {
-    prettifierLog(`Updating review state in repo ${repo}`);
-    processInReviewIssues(repo, issues, pulls);
+    prettifierLog(`Updating review state in repo ${repo.name} (${issues.length} open issues, ${pulls.length} pull requests)`);
+    processInReviewIssues(repo.name, issues, pulls);
   });
