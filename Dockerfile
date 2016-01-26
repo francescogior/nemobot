@@ -7,4 +7,4 @@ WORKDIR /srv/app
 RUN npm i
 RUN npm run build
 
-CMD node ./lib/index.js
+CMD npm run start

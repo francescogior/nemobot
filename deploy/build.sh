@@ -11,5 +11,6 @@ LAST_COMMIT=$(git rev-parse HEAD)
 
 docker build -t quay.io/buildo/github-prettifier:$LAST_COMMIT ..
 docker tag -f quay.io/buildo/github-prettifier:$LAST_COMMIT quay.io/buildo/github-prettifier:latest
-docker push quay.io/buildo/github-prettifier:$LAST_COMMIT quay.io/buildo/github-prettifier:latest
+docker push quay.io/buildo/github-prettifier:$LAST_COMMIT
+docker push quay.io/buildo/github-prettifier:latest
 
