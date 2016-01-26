@@ -1,0 +1,12 @@
+{
+  "owner": "buildo",
+  "token": "abc123",
+  "frequency": 10000,
+  "repos": [{
+    "name": "foo"
+  }, {
+    "name": "bar",
+    "token": "def456",
+    "apiURL": "https://github.example.com/api/v3"
+  }]
+}

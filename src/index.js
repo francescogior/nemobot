@@ -1,7 +1,7 @@
 import Rx from 'rx';
 import Octokat from 'octokat';
-import config  from './config';
 import debug from 'debug';
+const config = require('./config.json');
 
 const prettifierLog = debug('prettifier');
 const reviewStateLog = debug('prettifier:review state');
