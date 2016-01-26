@@ -4,6 +4,7 @@ import config  from './config';
 import debug from 'debug';
 
 const prettifierLog = debug('prettifier');
+const reviewStateLog = debug('prettifier:review state');
 const httpLog = x => debug('http')(JSON.prettify(x, null, 2));
 
 function configForRepo(name) {
@@ -66,18 +67,16 @@ function removeLabelFromIssue(repoName, label, issue) {
 }
 
 function processInReviewIssues(repoName, issues, pulls) {
-  prettifierLog(`Processing ${issues.length} issues in repo ${repoName}`);
-
   const labelToAdd = issuesWithoutLabel('in review')(issuesWithPR(issues, issuesWithAssignee(pulls)));
   const labelToRemove = issuesWithLabel('in review')(issuesWithPR(issues, issuesWithoutAssignee(pulls)));
 
   labelToAdd.forEach(issue => {
-    prettifierLog(`Adding 'in review' label to issue #${issue.number}`);
+    reviewStateLog(`Adding 'in review' label to issue #${issue.number} in ${repoName}`);
     addLabelsToIssue(repoName, ['in review'], issue).catch(httpLog);
   });
 
   labelToRemove.forEach(issue => {
-    prettifierLog(`Removing 'in review' label from issue #${issue.number}`);
+    reviewStateLog(`Removing 'in review' label from issue #${issue.number} in ${repoName}`);
     removeLabelFromIssue(repoName, 'in review', issue).catch(httpLog);
   });
 }
@@ -91,5 +90,6 @@ Rx.Observable.timer(0, config.frequency)
     getAllPRs(repo))
   )
   .subscribe(([repo, issues, pulls]) => {
+    prettifierLog(`Updating review state in repo ${repo}`);
     processInReviewIssues(repo, issues, pulls);
   });
