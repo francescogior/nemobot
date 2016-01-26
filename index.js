@@ -6,16 +6,27 @@ import debug from 'debug';
 const prettifierLog = debug('prettifier');
 const httpLog = x => debug('http')(JSON.prettify(x, null, 2));
 
-const { org, repo, token, frequency } = config;
-
-const github = new Octokat({ token });
-
-function getAllIssues() {
-  return Rx.Observable.fromPromise(github.repos(org, repo).issues.fetch());
+function configForRepo(name) {
+  const { owner, token, repos, apiURL } = config;
+  const repo = repos.filter(r => r.name === name)[0];
+  return {
+    name,
+    owner: repo.owner || owner,
+    github: new Octokat({
+      token: repo.token || token,
+      rootURL: repo.apiURL || apiURL
+    })
+  };
 }
 
-function getAllPRs() {
-  return Rx.Observable.fromPromise(github.repos(org, repo).pulls.fetch());
+function getAllIssues(repoName) {
+  const { github, owner, name } = configForRepo(repoName);
+  return Rx.Observable.fromPromise(github.repos(owner, name).issues.fetch());
+}
+
+function getAllPRs(repoName) {
+  const { github, owner, name } = configForRepo(repoName);
+  return Rx.Observable.fromPromise(github.repos(owner, name).pulls.fetch());
 }
 
 function issuesWithPR(issues, pulls) {
@@ -42,36 +53,43 @@ function issuesWithoutLabel(label) {
   return issues => issues.filter(issue => issue.labels.map(l => l.name).indexOf(label) === -1);
 }
 
-function addLabelsToIssue(labels, issue) {
-  const p = github.repos(org, repo).issues(issue.number).labels.create(labels);
+function addLabelsToIssue(repoName, labels, issue) {
+  const { github, owner, name } = configForRepo(repoName);
+  const p = github.repos(owner, name).issues(issue.number).labels.create(labels);
   return Rx.Observable.fromPromise(p);
 }
 
-function removeLabelFromIssue(label, issue) {
-  const p = github.repos(org, repo).issues(issue.number).labels(label).remove();
+function removeLabelFromIssue(repoName, label, issue) {
+  const { github, owner, name } = configForRepo(repoName);
+  const p = github.repos(owner, name).issues(issue.number).labels(label).remove();
   return Rx.Observable.fromPromise(p);
 }
 
-function processInReviewIssues(issues, pulls) {
-  prettifierLog(`Processing ${issues.length} issues`);
+function processInReviewIssues(repoName, issues, pulls) {
+  prettifierLog(`Processing ${issues.length} issues in repo ${repoName}`);
 
   const labelToAdd = issuesWithoutLabel('in review')(issuesWithPR(issues, issuesWithAssignee(pulls)));
   const labelToRemove = issuesWithLabel('in review')(issuesWithPR(issues, issuesWithoutAssignee(pulls)));
 
   labelToAdd.forEach(issue => {
     prettifierLog(`Adding 'in review' label to issue #${issue.number}`);
-    addLabelsToIssue(['in review'], issue).catch(httpLog);
+    addLabelsToIssue(repoName, ['in review'], issue).catch(httpLog);
   });
 
   labelToRemove.forEach(issue => {
     prettifierLog(`Removing 'in review' label from issue #${issue.number}`);
-    removeLabelFromIssue('in review', issue).catch(httpLog);
+    removeLabelFromIssue(repoName, 'in review', issue).catch(httpLog);
   });
 }
 
 prettifierLog('Starting the watch');
-Rx.Observable.timer(0, frequency)
-  .flatMap(() => Rx.Observable.combineLatest(getAllIssues(), getAllPRs()))
-  .subscribe(([issues, pulls]) => {
-    processInReviewIssues(issues, pulls);
+Rx.Observable.timer(0, config.frequency)
+  .flatMap(() => Rx.Observable.from(config.repos.map(r => r.name)))
+  .flatMap(repo => Rx.Observable.combineLatest(
+    Rx.Observable.just(repo),
+    getAllIssues(repo),
+    getAllPRs(repo))
+  )
+  .subscribe(([repo, issues, pulls]) => {
+    processInReviewIssues(repo, issues, pulls);
   });

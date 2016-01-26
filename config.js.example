@@ -1,6 +1,13 @@
 export default {
-  org: 'buildo',
-  repo: 'github-prettifier',
-  token: 'abc123',
-  frequency: 10000 // milliseconds
+  owner: 'buildo',
+  token: '123abc',
+  frequency: 10000, // milliseconds
+  repos: [{
+    name: 'repo1'
+  }, {
+    owner: 'foo',
+    name: 'repo2',
+    token: '456def',
+    apiURL: 'https://github.example.com/api/v3'
+  }]
 };
