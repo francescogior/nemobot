@@ -3,6 +3,8 @@
 set -e
 set -x
 
+eval "$(docker-machine env dev)"
+
 if [ ! -e ../config.json ]; then
   echo "A config.json file needs to be available in the project directory" 1>&2
 fi
