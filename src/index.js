@@ -105,6 +105,21 @@ function processInReviewIssues(repoName, issues, pulls) {
   });
 }
 
+function processWIPIssues(repoName, issues, pulls) {
+  const labelToAdd = issuesWithoutLabel('WIP')(issuesWithPR(issues, issuesWithoutAssignee(pulls)));
+  const labelToRemove = issuesWithLabel('WIP')(issuesWithPR(issues, issuesWithAssignee(pulls)));
+
+  labelToAdd.forEach(issue => {
+    reviewStateLog(`Adding 'WIP' label to issue #${issue.number} in ${repoName}`);
+    addLabelsToIssue(repoName, ['WIP'], issue).catch(httpLog);
+  });
+
+  labelToRemove.forEach(issue => {
+    reviewStateLog(`Removing 'WIP' label from issue #${issue.number} in ${repoName}`);
+    removeLabelFromIssue(repoName, 'WIP', issue).catch(httpLog);
+  });
+}
+
 prettifierLog('Starting the watch');
 Rx.Observable.timer(0, config.frequency)
   .flatMap(() => getAllRepos(config.org))
@@ -116,4 +131,7 @@ Rx.Observable.timer(0, config.frequency)
   .subscribe(([repo, issues, pulls]) => {
     prettifierLog(`Updating review state in repo ${repo.name} (${issues.length} open issues, ${pulls.length} pull requests)`);
     processInReviewIssues(repo.name, issues, pulls);
+
+    prettifierLog(`Updating WIP state in repo ${repo.name} (${issues.length} open issues, ${pulls.length} pull requests)`);
+    processWIPIssues(repo.name, issues, pulls);
   });
