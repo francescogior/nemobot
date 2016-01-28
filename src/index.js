@@ -2,6 +2,7 @@ import Rx from 'rx';
 import Octokat from 'octokat';
 import debug from 'debug';
 import request from 'request-promise';
+import includes from 'lodash/includes';
 
 const config = require('./config.json');
 
@@ -79,6 +80,14 @@ function issuesWithLabel(label) {
 
 function issuesWithoutLabel(label) {
   return issues => issues.filter(issue => issue.labels.map(l => l.name).indexOf(label) === -1);
+}
+
+function issuesWithBodyContaining(text) {
+  return issues => issues.filter(issue => includes(issue.body, text));
+}
+
+function issuesWithoutBodyContaining(text) {
+  return issues => issues.filter(issue => !includes(issue.body, text));
 }
 
 function addLabelsToIssue(repoName, labels, issue) {
