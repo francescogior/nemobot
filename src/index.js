@@ -136,8 +136,8 @@ function processMacroIssues(repoName, issues) {
   const subIssuesTitle = '## sub-issues';
   const macroLabel = 'macro';
 
-  const labelToAdd = issuesWithBodyContaining(subIssuesTitle)(issues);
-  const labelToRemove = issuesWithoutBodyContaining(subIssuesTitle)(issues);
+  const labelToAdd = issuesWithBodyContaining(subIssuesTitle)(issuesWithoutLabel(macroLabel)(issues));
+  const labelToRemove = issuesWithoutBodyContaining(subIssuesTitle)(issuesWithLabel(macroLabel)(issues));
 
   labelToAdd.forEach(issue => {
     reviewStateLog(`Adding '${macroLabel}' label to issue #${issue.number} in ${repoName}`);
