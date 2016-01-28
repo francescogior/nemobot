@@ -7,7 +7,7 @@
     "dev": "DEBUG=* nodemon --exec babel-node --presets es2015 src/index.js",
     "clean": "rm -rf lib",
     "build": "npm run clean && babel --presets es2015 src --out-dir lib && cp config.json lib",
-    "start": "DEBUG=* node lib/index.js"
+    "start": "npm run build && DEBUG=* node lib/index.js"
   },
   "repository": {
     "type": "git",
