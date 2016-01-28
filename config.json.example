@@ -6,5 +6,6 @@
     "name": "bar",
     "token": "def456",
     "apiURL": "https://github.example.com/api/v3"
-  }]
+  }],
+  "labelsTemplate": "https://raw.githubusercontent.com/buildo/example/master/github-labels.json"
 }

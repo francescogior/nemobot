@@ -22,6 +22,7 @@
   "dependencies": {
     "debug": "^2.2.0",
     "octokat": "^0.4.16",
+    "request-promise": "^2.0.0",
     "rx": "^4.0.7"
   },
   "devDependencies": {

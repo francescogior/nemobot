@@ -1,10 +1,13 @@
 import Rx from 'rx';
 import Octokat from 'octokat';
 import debug from 'debug';
+import request from 'request-promise';
+
 const config = require('./config.json');
 
 const prettifierLog = debug('prettifier');
 const reviewStateLog = debug('prettifier:review state');
+const labelsLog = debug('prettifier:labels');
 const _httpLog = debug('http');
 const httpLog = x => _httpLog(JSON.stringify(x, null, 2));
 
@@ -120,15 +123,52 @@ function processWIPIssues(repoName, issues, pulls) {
   });
 }
 
+function getLabelsDefinitions() {
+  return Rx.Observable.fromPromise(
+    request({
+      url: config.labelsTemplate,
+      headers: { Authorization: `token ${config.token}` }
+    })
+  ).map(data => JSON.parse(data));
+}
+
+function upsertLabelInRepo(repoName, label) {
+  const { github, org, name } = configForRepo(repoName);
+
+  return github.repos(org, name).labels(label.name).fetch().then(() => {
+    labelsLog(`Updating label [${label.name}] (#${label.color}) in repo ${repoName}`);
+    github.repos(org, name).labels(label.name).update(label);
+  }, () => {
+    labelsLog(`Creating label [${label.name}] (#${label.color}) in repo ${repoName}`);
+    github.repos(org, name).labels.create(label);
+  });
+}
+
+function ensureLabelsConsistency(repoName, labels) {
+  labels.forEach(label => {
+    if (label.whitelist) {
+      if (label.whitelist.indexOf(repoName) !== -1) {
+        upsertLabelInRepo(repoName, label);
+      }
+    } else {
+      upsertLabelInRepo(repoName, label);
+    }
+  });
+}
+
 prettifierLog('Starting the watch');
 Rx.Observable.timer(0, config.frequency)
   .flatMap(() => getAllRepos(config.org))
   .flatMap(repo => Rx.Observable.combineLatest(
     Rx.Observable.just(repo),
     getAllIssues(repo.name),
-    getAllPRs(repo.name))
-  )
-  .subscribe(([repo, issues, pulls]) => {
+    getAllPRs(repo.name),
+    getLabelsDefinitions()
+  ))
+  .subscribe(([repo, issues, pulls, labels]) => {
+    prettifierLog(`Updating labels in repo ${repo.name}`);
+    ensureLabelsConsistency(repo.name, labels);
+
     prettifierLog(`Updating review state in repo ${repo.name} (${issues.length} open issues, ${pulls.length} pull requests)`);
     processInReviewIssues(repo.name, issues, pulls);
 
