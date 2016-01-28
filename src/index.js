@@ -132,6 +132,24 @@ function processWIPIssues(repoName, issues, pulls) {
   });
 }
 
+function processMacroIssues(repoName, issues) {
+  const subIssuesTitle = '## sub-issues';
+  const macroLabel = 'macro';
+
+  const labelToAdd = issuesWithBodyContaining(subIssuesTitle)(issues);
+  const labelToRemove = issuesWithoutBodyContaining(subIssuesTitle)(issues);
+
+  labelToAdd.forEach(issue => {
+    reviewStateLog(`Adding '${macroLabel}' label to issue #${issue.number} in ${repoName}`);
+    addLabelsToIssue(repoName, [macroLabel], issue).catch(httpLog);
+  });
+
+  labelToRemove.forEach(issue => {
+    reviewStateLog(`Removing '${macroLabel}' label from issue #${issue.number} in ${repoName}`);
+    removeLabelFromIssue(repoName, macroLabel, issue).catch(httpLog);
+  });
+}
+
 function getLabelsDefinitions() {
   return Rx.Observable.fromPromise(
     request({
@@ -183,4 +201,7 @@ Rx.Observable.timer(0, config.frequency)
 
     prettifierLog(`Updating WIP state in repo ${repo.name} (${issues.length} open issues, ${pulls.length} pull requests)`);
     processWIPIssues(repo.name, issues, pulls);
+
+    prettifierLog(`Updating macro state in repo ${repo.name} (${issues.length} open issues)`);
+    processMacroIssues(repo.name, issues);
   });
