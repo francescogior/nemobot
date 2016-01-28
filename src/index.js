@@ -173,11 +173,7 @@ function upsertLabelInRepo(repoName, label) {
 
 function ensureLabelsConsistency(repoName, labels) {
   labels.forEach(label => {
-    if (label.whitelist) {
-      if (label.whitelist.indexOf(repoName) !== -1) {
-        upsertLabelInRepo(repoName, label);
-      }
-    } else {
+    if (!label.whitelist || includes(label.whitelist, repoName)) {
       upsertLabelInRepo(repoName, label);
     }
   });
