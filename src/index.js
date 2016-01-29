@@ -2,6 +2,7 @@ import Rx from 'rx';
 import Octokat from 'octokat';
 import debug from 'debug';
 import request from 'request-promise';
+import includes from 'lodash/includes';
 
 const config = require('./config.json');
 
@@ -81,6 +82,14 @@ function issuesWithoutLabel(label) {
   return issues => issues.filter(issue => issue.labels.map(l => l.name).indexOf(label) === -1);
 }
 
+function issuesWithBodyContaining(text) {
+  return issues => issues.filter(issue => includes(issue.body, text));
+}
+
+function issuesWithoutBodyContaining(text) {
+  return issues => issues.filter(issue => !includes(issue.body, text));
+}
+
 function addLabelsToIssue(repoName, labels, issue) {
   const { github, org, name } = configForRepo(repoName);
   const p = github.repos(org, name).issues(issue.number).labels.create(labels);
@@ -123,6 +132,24 @@ function processWIPIssues(repoName, issues, pulls) {
   });
 }
 
+function processMacroIssues(repoName, issues) {
+  const subIssuesTitle = '## sub-issues';
+  const macroLabel = 'macro';
+
+  const labelToAdd = issuesWithBodyContaining(subIssuesTitle)(issuesWithoutLabel(macroLabel)(issues));
+  const labelToRemove = issuesWithoutBodyContaining(subIssuesTitle)(issuesWithLabel(macroLabel)(issues));
+
+  labelToAdd.forEach(issue => {
+    reviewStateLog(`Adding '${macroLabel}' label to issue #${issue.number} in ${repoName}`);
+    addLabelsToIssue(repoName, [macroLabel], issue).catch(httpLog);
+  });
+
+  labelToRemove.forEach(issue => {
+    reviewStateLog(`Removing '${macroLabel}' label from issue #${issue.number} in ${repoName}`);
+    removeLabelFromIssue(repoName, macroLabel, issue).catch(httpLog);
+  });
+}
+
 function getLabelsDefinitions() {
   return Rx.Observable.fromPromise(
     request({
@@ -146,11 +173,7 @@ function upsertLabelInRepo(repoName, label) {
 
 function ensureLabelsConsistency(repoName, labels) {
   labels.forEach(label => {
-    if (label.whitelist) {
-      if (label.whitelist.indexOf(repoName) !== -1) {
-        upsertLabelInRepo(repoName, label);
-      }
-    } else {
+    if (!label.whitelist || includes(label.whitelist, repoName)) {
       upsertLabelInRepo(repoName, label);
     }
   });
@@ -174,4 +197,7 @@ Rx.Observable.timer(0, config.frequency)
 
     prettifierLog(`Updating WIP state in repo ${repo.name} (${issues.length} open issues, ${pulls.length} pull requests)`);
     processWIPIssues(repo.name, issues, pulls);
+
+    prettifierLog(`Updating macro state in repo ${repo.name} (${issues.length} open issues)`);
+    processMacroIssues(repo.name, issues);
   });

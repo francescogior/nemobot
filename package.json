@@ -21,6 +21,7 @@
   "homepage": "https://github.com/buildo/github-prettifier#readme",
   "dependencies": {
     "debug": "^2.2.0",
+    "lodash": "^4.0.1",
     "octokat": "^0.4.16",
     "request-promise": "^2.0.0",
     "rx": "^4.0.7"
