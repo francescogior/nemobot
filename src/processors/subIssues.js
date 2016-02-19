@@ -65,7 +65,7 @@ function generateSubIssuesParagraph(macroIssue, subIssue) {
     onEndWithNoTransformation: () => [ subIssuesHeader, [ generateListItem(subIssue)] ]
   };
 
-  return mdRenderer(macroIssue.body, visitors);
+  return mdRenderer(macroIssue.body || '', visitors);
 }
 
 // processors
