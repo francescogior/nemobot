@@ -1,4 +1,4 @@
-import { includes, find } from 'lodash';
+import { includes, find, drop } from 'lodash';
 import {
   httpLog,
   prettifierLog,
@@ -45,12 +45,10 @@ function processMacro(repoName, issue) {
 }
 
 function processPullRequestState(repoName, pull) {
-  const issueNumberReg = /\(closes #(\d+)\)/.exec(pull.title);
-  const isAssociatedWithIssue = !!issueNumberReg;
+  const issueNumber = drop(/\(closes #(\d+)\)/.exec(pull.title))[0];
 
-  if (isAssociatedWithIssue) {
+  if (issueNumber) {
     const isInReview = !!pull.assignee;
-    const issueNumber = issueNumberReg[1];
     const { github, org, name } = configForRepo(repoName);
 
     github.repos(org, name).issues(issueNumber).fetch()
