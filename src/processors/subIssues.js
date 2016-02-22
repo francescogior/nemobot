@@ -1,4 +1,4 @@
-import { includes, find, startsWith, drop } from 'lodash';
+import { includes, find, startsWith } from 'lodash';
 import {
   httpLog,
   prettifierLog,
@@ -71,7 +71,7 @@ function generateSubIssuesParagraph(macroIssue, subIssue) {
 // processors
 function processSubIssuesParagraph(repoName, issue) {
   const isSubIssue = startsWith(issue.body, '← #');
-  const parentIssueNumber = drop((/← #(\d+)/).exec(issue.body))[0];
+  const [, parentIssueNumber] = issue.body.match(/← #(\d+)/) || [];
 
   if (isSubIssue && parentIssueNumber) {
     reviewStateLog(`Updating sub-issues paragraph in issue #${parentIssueNumber} from repo ${repoName}`);

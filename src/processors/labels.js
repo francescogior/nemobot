@@ -1,4 +1,4 @@
-import { includes, find, drop } from 'lodash';
+import { includes, find } from 'lodash';
 import {
   httpLog,
   prettifierLog,
@@ -47,7 +47,7 @@ function processMacro(repoName, issue) {
 }
 
 function processPullRequestState(repoName, pull) {
-  const issueNumber = drop(/\(closes #(\d+)\)/.exec(pull.title))[0];
+  const [, issueNumber] = pull.title.match(/\(closes #(\d+)\)/) || [];
 
   if (issueNumber) {
     const isInReview = !!pull.assignee;
