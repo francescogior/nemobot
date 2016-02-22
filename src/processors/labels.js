@@ -6,9 +6,11 @@ import {
   configForRepo
 } from '../utils';
 
-const MACRO = 'macro';
-const IN_REVIEW = 'in review';
-const WIP = 'WIP';
+const labels = {
+  macro: 'macro',
+  inReview: 'in review',
+  wip: 'WIP'
+};
 
 // utils
 const hasLabel = ({ labels }, name) => !!find(labels, { name });
@@ -33,14 +35,14 @@ function processMacro(repoName, issue) {
   const subIssuesTitle = '## sub-issues';
 
   const isMacroIssue = includes(issue.body, subIssuesTitle);
-  const hasMacroLabel = hasLabel(issue, MACRO);
+  const hasMacroLabel = hasLabel(issue, labels.macro);
 
   if (isMacroIssue && !hasMacroLabel) {
-    reviewStateLog(`Adding '${MACRO}' label to issue #${issue.number} in ${repoName}`);
-    addLabelsToIssue(repoName, [MACRO], issue).catch(httpLog);
+    reviewStateLog(`Adding '${labels.macro}' label to issue #${issue.number} in ${repoName}`);
+    addLabelsToIssue(repoName, [labels.macro], issue).catch(httpLog);
   } else if (!isMacroIssue && hasMacroLabel) {
-    reviewStateLog(`Removing '${MACRO}' label from issue #${issue.number} in ${repoName}`);
-    removeLabelFromIssue(repoName, MACRO, issue).catch(httpLog);
+    reviewStateLog(`Removing '${labels.macro}' label from issue #${issue.number} in ${repoName}`);
+    removeLabelFromIssue(repoName, labels.macro, issue).catch(httpLog);
   }
 }
 
@@ -56,14 +58,14 @@ function processPullRequestState(repoName, pull) {
         const isClosed = issue.state === 'closed';
 
         if (isClosed) {
-          removeLabelFromIssue(repoName, IN_REVIEW, issue).catch(httpLog);
-          removeLabelFromIssue(repoName, WIP, issue).catch(httpLog);
+          removeLabelFromIssue(repoName, labels.inReview, issue).catch(httpLog);
+          removeLabelFromIssue(repoName, labels.wip, issue).catch(httpLog);
         } else if (isInReview) {
-          addLabelsToIssue(repoName, [IN_REVIEW], issue).catch(httpLog);
-          removeLabelFromIssue(repoName, WIP, issue).catch(httpLog);
+          addLabelsToIssue(repoName, [labels.inReview], issue).catch(httpLog);
+          removeLabelFromIssue(repoName, labels.wip, issue).catch(httpLog);
         } else if (!isInReview) {
-          addLabelsToIssue(repoName, [WIP], issue).catch(httpLog);
-          removeLabelFromIssue(repoName, IN_REVIEW, issue).catch(httpLog);
+          addLabelsToIssue(repoName, [labels.wip], issue).catch(httpLog);
+          removeLabelFromIssue(repoName, labels.inReview, issue).catch(httpLog);
         }
       })
       .catch(httpLog);
