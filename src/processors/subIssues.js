@@ -92,7 +92,7 @@ function processSubIssuesParagraph(repoName, issue) {
 
 export default (event, { issue, repository: repo }) => {
   if (issue) {
-    prettifierLog(`Updating marco issue of issue #${issue.number} in repo ${repo.name}`);
+    prettifierLog(`Updating macro issue of issue #${issue.number} in repo ${repo.name}`);
     processSubIssuesParagraph(repo.name, issue);
   }
 };
