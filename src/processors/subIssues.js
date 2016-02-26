@@ -90,9 +90,11 @@ function processSubIssuesParagraph(repoName, issue) {
 }
 
 
-export default (event, { issue, repository: repo }) => {
-  if (issue) {
-    prettifierLog(`Updating macro issue of issue #${issue.number} in repo ${repo.name}`);
-    processSubIssuesParagraph(repo.name, issue);
-  }
+export default subject => {
+  subject
+    .filter(({ body: { issue } }) => issue)
+    .subscribe(({ body: { issue, repository: repo } }) => {
+      prettifierLog(`Updating macro issue of issue #${issue.number} in repo ${repo.name}`);
+      processSubIssuesParagraph(repo, issue, subject);
+    });
 };
