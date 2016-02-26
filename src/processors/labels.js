@@ -50,16 +50,13 @@ function processMacro(repoName, issue) {
 
 function processPullRequestState(repoName, pull) {
   const [, issueNumber] = pull.title.match(/\(closes #(\d+)\)/) || [];
-
+  const isInReview = !!pull.assignee;
   if (issueNumber) {
-    const isInReview = !!pull.assignee;
     const { github, org, name } = configForRepo(repoName);
 
     github.repos(org, name).issues(issueNumber).fetch()
       .then(issue => {
-        const isClosed = issue.state === 'closed';
-
-        if (isClosed) {
+        if (issue.state === 'closed') {
           removeLabelFromIssue(repoName, labels.inReview, issue).catch(httpLog);
           removeLabelFromIssue(repoName, labels.wip, issue).catch(httpLog);
         } else if (isInReview) {
@@ -71,6 +68,17 @@ function processPullRequestState(repoName, pull) {
         }
       })
       .catch(httpLog);
+  }
+
+  if (pull.state === 'closed') {
+    removeLabelFromIssue(repoName, labels.inReview, pull).catch(httpLog);
+    removeLabelFromIssue(repoName, labels.wip, pull).catch(httpLog);
+  } else if (isInReview) {
+    addLabelsToIssue(repoName, [labels.inReview], pull).catch(httpLog);
+    removeLabelFromIssue(repoName, labels.wip, pull).catch(httpLog);
+  } else if (!isInReview) {
+    addLabelsToIssue(repoName, [labels.wip], pull).catch(httpLog);
+    removeLabelFromIssue(repoName, labels.inReview, pull).catch(httpLog);
   }
 }
 
