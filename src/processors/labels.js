@@ -52,27 +52,28 @@ function processPullRequestState(repoName, pull) {
   const [, issueNumber] = pull.title.match(/\(closes #(\d+)\)/) || [];
   const isInReview = !!pull.assignee;
 
-  function processInReviewAndWIP(_issue) {
-    if (_issue.state === 'closed') {
-      removeLabelFromIssue(repoName, labels.inReview, _issue).catch(httpLog);
-      removeLabelFromIssue(repoName, labels.wip, _issue).catch(httpLog);
-    } else if (isInReview) {
-      addLabelsToIssue(repoName, [labels.inReview], _issue).catch(httpLog);
-      removeLabelFromIssue(repoName, labels.wip, _issue).catch(httpLog);
-    } else if (!isInReview) {
-      addLabelsToIssue(repoName, [labels.wip], _issue).catch(httpLog);
-      removeLabelFromIssue(repoName, labels.inReview, _issue).catch(httpLog);
-    }
-  }
-
-  if (issueNumber) {
+  function processInReviewAndWIP(number) {
     const { github, org, name } = configForRepo(repoName);
-    github.repos(org, name).issues(issueNumber).fetch()
-      .then(processInReviewAndWIP)
+    github.repos(org, name).issues(number).fetch()
+      .then(_issue => {
+        if (_issue.state === 'closed') {
+          removeLabelFromIssue(repoName, labels.inReview, _issue).catch(httpLog);
+          removeLabelFromIssue(repoName, labels.wip, _issue).catch(httpLog);
+        } else if (isInReview) {
+          addLabelsToIssue(repoName, [labels.inReview], _issue).catch(httpLog);
+          removeLabelFromIssue(repoName, labels.wip, _issue).catch(httpLog);
+        } else if (!isInReview) {
+          addLabelsToIssue(repoName, [labels.wip], _issue).catch(httpLog);
+          removeLabelFromIssue(repoName, labels.inReview, _issue).catch(httpLog);
+        }
+      })
       .catch(httpLog);
   }
 
-  processInReviewAndWIP(pull);
+  if (issueNumber) {
+    processInReviewAndWIP(issueNumber);
+  }
+  processInReviewAndWIP(pull.number);
 }
 
 
