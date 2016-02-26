@@ -21,6 +21,7 @@ function addLabelsToIssue(repoName, _labels, issue) {
     const { github, org, name } = configForRepo(repoName);
     return github.repos(org, name).issues(issue.number).labels.create(labels);
   }
+  return Promise.resolve();
 }
 
 function removeLabelFromIssue(repoName, label, issue) {
@@ -28,6 +29,7 @@ function removeLabelFromIssue(repoName, label, issue) {
     const { github, org, name } = configForRepo(repoName);
     return github.repos(org, name).issues(issue.number).labels(label).remove();
   }
+  return Promise.resolve();
 }
 
 // processors
