@@ -69,13 +69,13 @@ function generateSubIssuesParagraph(macroIssue, subIssue) {
 }
 
 // processors
-function processSubIssuesParagraph(repoName, issue) {
+function processSubIssuesParagraph(repo, issue, subject) {
   const isSubIssue = startsWith(issue.body, '← #');
   const [, parentIssueNumber] = issue.body.match(/← #(\d+)/) || [];
 
   if (isSubIssue && parentIssueNumber) {
-    reviewStateLog(`Updating sub-issues paragraph in issue #${parentIssueNumber} from repo ${repoName}`);
-    const { github, org, name } = configForRepo(repoName);
+    reviewStateLog(`Updating sub-issues paragraph in issue #${parentIssueNumber} from repo ${repo.name}`);
+    const { github, org, name } = configForRepo(repo.name);
 
     github.repos(org, name).issues(parentIssueNumber).fetch()
       .then(macroIssue => {
@@ -83,16 +83,23 @@ function processSubIssuesParagraph(repoName, issue) {
           patchSubIssuesParagraph(macroIssue, issue) :
           generateSubIssuesParagraph(macroIssue, issue);
 
-        updateIssueBody(repoName, newBody, macroIssue);
+        updateIssueBody(repo.name, newBody, macroIssue);
+        const fakeWebhook = {
+          event: 'issues',
+          body: { issue: { ...macroIssue, body: newBody }, repository: repo }
+        };
+        subject.onNext(fakeWebhook);
       })
       .catch(httpLog);
   }
 }
 
 
-export default (event, { issue, repository: repo }) => {
-  if (issue) {
-    prettifierLog(`Updating macro issue of issue #${issue.number} in repo ${repo.name}`);
-    processSubIssuesParagraph(repo.name, issue);
-  }
+export default subject => {
+  subject
+    .filter(({ body: { issue } }) => issue)
+    .subscribe(({ body: { issue, repository: repo } }) => {
+      prettifierLog(`Updating macro issue of issue #${issue.number} in repo ${repo.name}`);
+      processSubIssuesParagraph(repo, issue, subject);
+    });
 };

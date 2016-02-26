@@ -73,16 +73,22 @@ function processPullRequestState(repoName, pull) {
 }
 
 
-export default (event, { issue, pull_request: pull, repository: repo }) => {
-  if (includes(['issues', 'pull_request'], event)) {
-    if (issue) {
+export default subject => {
+  const source = subject.filter(({ event }) => includes(['issues', 'pull_request'], event));
+
+  // issues
+  source
+    .filter(({ body }) => body.issue)
+    .subscribe(({ body: { issue, repository: repo } }) => {
       prettifierLog(`Updating labels of issue #${issue.number} in repo ${repo.name}`);
       processMacro(repo.name, issue);
-    }
+    });
 
-    if (pull) {
+  // pulls
+  source
+    .filter(({ body }) => body.pull_request)
+    .subscribe(({ body: { pull_request: pull, repository: repo } }) => {
       prettifierLog(`Updating labels of pull request #${pull.number} in repo ${repo.name}`);
       processPullRequestState(repo.name, pull);
-    }
-  }
+    });
 };
