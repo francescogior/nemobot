@@ -32,7 +32,7 @@ function generateListItem({ state, title, number }) {
 
 
 function patchSubIssuesParagraph(macroIssue, subIssue) {
-  const shouldReplaceListItem = (listItem) => includes(listItem.text, `#${subIssue.number}`);
+  const shouldReplaceListItem = (listItem) => find(listItem.text, x => includes(x, `#${subIssue.number}`));
 
   const visitors = {
     onSubissues: (list) => {

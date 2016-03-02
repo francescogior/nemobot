@@ -11,8 +11,7 @@ function transform(ast, visitors) {
     let newBody;
     // handle subissues separately
     if (currentSection && visitors.onSubissues && includes(currentSection.text[0], 'sub-issues') && node.type === 'list') {
-      const bodyWithJoinedText = node.body.map(s => ({ ...s, text: s.text.join('') }));
-      newBody = visitors.onSubissues(bodyWithJoinedText);
+      newBody = visitors.onSubissues(node.body);
       transformed = true;
     }
 
