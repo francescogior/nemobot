@@ -89,7 +89,7 @@ function syncPullRequestLabels(repoName, pull) {
       const labelsToAdd = issue.labels.map(({ name }) => name);
       const labelsToRemove = PRIssue.labels
         .map(({ name }) => name)
-        .filter(l => !hasLabel({ labels: issue.labels.concat([labels.wip, labels.inReview]) }, l));
+        .filter(l => !hasLabel(issue, l));
 
       addLabelsToIssue(repoName, labelsToAdd, PRIssue).catch(httpLog);
       labelsToRemove.forEach(l => removeLabelFromIssue(repoName, l, PRIssue).catch(httpLog));
