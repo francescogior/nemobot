@@ -14,6 +14,7 @@ const labels = {
 
 // utils
 const hasLabel = ({ labels }, name) => !!find(labels, { name });
+const getAssociatedIssueNumber = pull => (pull.title.match(/\(closes #(\d+)\)/) || [])[1];
 
 function addLabelsToIssue(repoName, _labels, issue) {
   const labels = _labels.filter(l => !hasLabel(issue, l));
@@ -49,7 +50,7 @@ function processMacro(repoName, issue) {
 }
 
 function processPullRequestState(repoName, pull) {
-  const [, issueNumber] = pull.title.match(/\(closes #(\d+)\)/) || [];
+  const issueNumber = getAssociatedIssueNumber(pull);
   const isInReview = !!pull.assignee;
 
   function processInReviewAndWIP(number) {
@@ -77,7 +78,7 @@ function processPullRequestState(repoName, pull) {
 }
 
 function syncPullRequestLabels(repoName, pull) {
-  const [, issueNumber] = pull.title.match(/\(closes #(\d+)\)/) || [];
+  const issueNumber = getAssociatedIssueNumber(pull);
   const { github, org, name } = configForRepo(repoName);
 
   const getIssue = github.repos(org, name).issues(issueNumber).fetch;
