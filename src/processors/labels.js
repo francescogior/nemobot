@@ -14,6 +14,7 @@ const labels = {
 
 // utils
 const hasLabel = ({ labels }, name) => !!find(labels, { name });
+const getAssociatedIssueNumber = pull => (pull.title.match(/\(closes #(\d+)\)/) || [])[1];
 
 function addLabelsToIssue(repoName, _labels, issue) {
   const labels = _labels.filter(l => !hasLabel(issue, l));
@@ -49,7 +50,7 @@ function processMacro(repoName, issue) {
 }
 
 function processPullRequestState(repoName, pull) {
-  const [, issueNumber] = pull.title.match(/\(closes #(\d+)\)/) || [];
+  const issueNumber = getAssociatedIssueNumber(pull);
   const isInReview = !!pull.assignee;
 
   function processInReviewAndWIP(number) {
@@ -76,10 +77,28 @@ function processPullRequestState(repoName, pull) {
   processInReviewAndWIP(pull.number);
 }
 
+function syncPullRequestLabels(repoName, pull) {
+  const issueNumber = getAssociatedIssueNumber(pull);
+  const { github, org, name } = configForRepo(repoName);
+
+  const getIssue = github.repos(org, name).issues(issueNumber).fetch;
+  const getPRIssue = github.repos(org, name).issues(pull.number).fetch;
+
+  Promise.all([getIssue(), getPRIssue()])
+    .then(([issue, PRIssue]) => {
+      const labelsToAdd = issue.labels.map(({ name }) => name);
+      const labelsToRemove = PRIssue.labels
+        .map(({ name }) => name)
+        .filter(l => !hasLabel(issue, l));
+
+      addLabelsToIssue(repoName, labelsToAdd, PRIssue).catch(httpLog);
+      labelsToRemove.forEach(l => removeLabelFromIssue(repoName, l, PRIssue).catch(httpLog));
+    });
+}
+
 
 export default subject => {
   const source = subject.filter(({ event }) => includes(['issues', 'pull_request'], event));
-
   // issues
   source
     .filter(({ body }) => body.issue)
@@ -94,5 +113,6 @@ export default subject => {
     .subscribe(({ body: { pull_request: pull, repository: repo } }) => {
       prettifierLog(`Updating labels of pull request #${pull.number} in repo ${repo.name}`);
       processPullRequestState(repo.name, pull);
+      syncPullRequestLabels(repo.name, pull);
     });
 };
