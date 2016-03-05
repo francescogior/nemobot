@@ -1,0 +1,36 @@
+build:
+  config:
+    image: ubuntu
+    commands:
+      - sed -e 's/$BUILDO_GITHUB_TOKEN/$$BUILDO_GITHUB_TOKEN/g' -e 's/$OMNILAB_GITHUB_TOKEN/$$OMNILAB_GITHUB_TOKEN/g' config-ci.json > config.json
+
+publish:
+  docker:
+    registry: quay.io
+    username: $$QUAY_USERNAME
+    password: $$QUAY_PASSWORD
+    email: $$QUAY_EMAIL
+    repo: buildo/github-prettifier
+    force_tag: true
+    insecure: true
+    load: deploy/image.tar
+    save:
+      destination: deploy/image.tar
+      tag: latest
+    tag:
+      - latest
+      - $$COMMIT
+
+deploy:
+  ssh:
+    host: jar.srv.buildo.io
+    user: root
+    port: 22
+    commands:
+      - crane lift github-prettifier
+    when:
+      branch: master
+
+cache:
+  mount:
+    - deploy/image.tar

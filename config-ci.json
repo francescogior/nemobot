@@ -1,0 +1,15 @@
+{
+  "org": "buildo",
+  "token": "$BUILDO_GITHUB_TOKEN",
+  "frequency": 600000,
+  "repos": [{
+    "name": "labonline",
+    "token": "$OMNILAB_GITHUB_TOKEN",
+    "apiURL": "https://github.omnilab.our.buildo.io/api/v3"
+  }, {
+    "name": "qia",
+    "token": "$OMNILAB_GITHUB_TOKEN",
+    "apiURL": "https://github.omnilab.our.buildo.io/api/v3"
+  }],
+  "labelsTemplate": "https://raw.githubusercontent.com/buildo/infra/master/templates/github-labels.json"
+}
