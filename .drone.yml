@@ -31,6 +31,21 @@ deploy:
     when:
       branch: master
 
+notify:
+  slack_blame:
+    token: $$SLACK_TOKEN
+    channel: "#github-prettifier"
+    failure:
+      username: "Desolated Drone"
+      icon: ":robot_face:"
+      message: "Something went wrong during the deploy!"
+    success:
+      username: "Enthusiastic Drone"
+      icon: ":robot_face:"
+      message: ":tada: New version successfully deployed!! (commit: $$COMMIT)"
+    when:
+      branch: master
+
 cache:
   mount:
     - deploy/image.tar
