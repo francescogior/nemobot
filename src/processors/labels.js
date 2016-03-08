@@ -110,6 +110,7 @@ export default subject => {
   // pulls
   source
     .filter(({ body }) => body.pull_request)
+    .filter(({ body }) => !(body.pull_request.state === 'closed' && !body.pull_request.merged)) // ignore PRs closed without merge
     .subscribe(({ body: { pull_request: pull, repository: repo } }) => {
       prettifierLog(`Updating labels of pull request #${pull.number} in repo ${repo.name}`);
       processPullRequestState(repo.name, pull);
