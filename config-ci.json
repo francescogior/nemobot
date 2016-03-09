@@ -3,11 +3,7 @@
   "token": "$BUILDO_GITHUB_TOKEN",
   "frequency": 600000,
   "repos": [{
-    "name": "labonline",
-    "token": "$OMNILAB_GITHUB_TOKEN",
-    "apiURL": "https://github.omnilab.our.buildo.io/api/v3"
-  }, {
-    "name": "qia",
+    "name": "aliniq",
     "token": "$OMNILAB_GITHUB_TOKEN",
     "apiURL": "https://github.omnilab.our.buildo.io/api/v3"
   }],
