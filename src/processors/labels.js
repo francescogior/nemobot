@@ -79,21 +79,23 @@ function processPullRequestState(repoName, pull) {
 
 function syncPullRequestLabels(repoName, pull) {
   const issueNumber = getAssociatedIssueNumber(pull);
-  const { github, org, name } = configForRepo(repoName);
+  if (issueNumber) {
+    const { github, org, name } = configForRepo(repoName);
 
-  const getIssue = github.repos(org, name).issues(issueNumber).fetch;
-  const getPRIssue = github.repos(org, name).issues(pull.number).fetch;
+    const getIssue = github.repos(org, name).issues(issueNumber).fetch;
+    const getPRIssue = github.repos(org, name).issues(pull.number).fetch;
 
-  Promise.all([getIssue(), getPRIssue()])
-    .then(([issue, PRIssue]) => {
-      const labelsToAdd = issue.labels.map(({ name }) => name);
-      const labelsToRemove = PRIssue.labels
-        .map(({ name }) => name)
-        .filter(l => !hasLabel(issue, l));
+    Promise.all([getIssue(), getPRIssue()])
+      .then(([issue, PRIssue]) => {
+        const labelsToAdd = issue.labels.map(({ name }) => name);
+        const labelsToRemove = PRIssue.labels
+          .map(({ name }) => name)
+          .filter(l => !hasLabel(issue, l));
 
-      addLabelsToIssue(repoName, labelsToAdd, PRIssue).catch(httpLog);
-      labelsToRemove.forEach(l => removeLabelFromIssue(repoName, l, PRIssue).catch(httpLog));
-    });
+        addLabelsToIssue(repoName, labelsToAdd, PRIssue).catch(httpLog);
+        labelsToRemove.forEach(l => removeLabelFromIssue(repoName, l, PRIssue).catch(httpLog));
+      });
+  }
 }
 
 
