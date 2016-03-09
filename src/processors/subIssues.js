@@ -71,7 +71,7 @@ function generateSubIssuesParagraph(macroIssue, subIssue) {
 // processors
 function processSubIssuesParagraph(repo, issue, subject) {
   const isSubIssue = startsWith(issue.body, '← #');
-  const [, parentIssueNumber] = issue.body.match(/← #(\d+)/) || [];
+  const [, parentIssueNumber] = (isSubIssue && issue.body.match(/← #(\d+)/)) || [];
 
   if (isSubIssue && parentIssueNumber) {
     reviewStateLog(`Updating sub-issues paragraph in issue #${parentIssueNumber} from repo ${repo.name}`);
