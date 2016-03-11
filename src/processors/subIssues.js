@@ -70,8 +70,13 @@ function generateSubIssuesParagraph(macroIssue, subIssue) {
 
 // processors
 function processSubIssuesParagraph(repo, issue, subject) {
-  const isSubIssue = startsWith(issue.body, '← #');
-  const [, parentIssueNumber] = (isSubIssue && issue.body.match(/← #(\d+)/)) || [];
+  const validArrows = ['←', '&larr;', '&#8592;', '&#x2190;'];
+
+  const usedArrow = find(validArrows, arrow => startsWith(issue.body, `${arrow} #`));
+  const isSubIssue = !!usedArrow;
+  const parentIssueNumberRegExp = new RegExp(`${usedArrow} #(\\d+)`);
+
+  const [, parentIssueNumber] = (isSubIssue && issue.body.match(parentIssueNumberRegExp)) || [];
 
   if (isSubIssue && parentIssueNumber) {
     reviewStateLog(`Updating sub-issues paragraph in issue #${parentIssueNumber} from repo ${repo.name}`);
