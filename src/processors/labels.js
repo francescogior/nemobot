@@ -1,4 +1,4 @@
-import { includes, find } from 'lodash';
+import { includes, find, filter } from 'lodash';
 import {
   httpLog,
   prettifierLog,
@@ -85,10 +85,12 @@ function syncPullRequestLabels(repoName, pull) {
     const getIssue = github.repos(org, name).issues(issueNumber).fetch;
     const getPRIssue = github.repos(org, name).issues(pull.number).fetch;
 
+    const filterOutInReviewAndWIP = (_labels) => filter(_labels, ({ name }) => !includes([labels.inReview, labels.wip], name));
+
     Promise.all([getIssue(), getPRIssue()])
       .then(([issue, PRIssue]) => {
-        const labelsToAdd = issue.labels.map(({ name }) => name);
-        const labelsToRemove = PRIssue.labels
+        const labelsToAdd = filterOutInReviewAndWIP(issue.labels).map(({ name }) => name);
+        const labelsToRemove = filterOutInReviewAndWIP(PRIssue.labels)
           .map(({ name }) => name)
           .filter(l => !hasLabel(issue, l));
 
