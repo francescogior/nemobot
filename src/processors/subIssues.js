@@ -19,17 +19,18 @@ function updateIssueBody(repoName, body, issue) {
 function generateListItem({ state, title, number }) {
   const isOpen = state === 'open';
   return {
-    type: 'list',
-    body: [
-      {
-        type: 'listitem',
-        text: [ `[${isOpen ? ' ' : 'x'}] ${title.replace(/\[[^\]]+\]/, '').trim()} #${number}` ]
-      }
-    ],
-    ordered: false
+    type: 'listitem',
+    text: [ `[${isOpen ? ' ' : 'x'}] ${title.replace(/\[[^\]]+\]/, '').trim()} #${number}` ]
   };
 }
 
+function generateList(issue) {
+  return {
+    type: 'list',
+    body: [generateListItem(issue)],
+    ordered: false
+  };
+}
 
 function patchSubIssuesParagraph(macroIssue, subIssue) {
   const shouldReplaceListItem = (listItem) => find(listItem.text, x => includes(x, `#${subIssue.number}`));
@@ -62,7 +63,7 @@ function generateSubIssuesParagraph(macroIssue, subIssue) {
   };
 
   const visitors = {
-    onEndWithNoTransformation: () => [ subIssuesHeader, [ generateListItem(subIssue)] ]
+    onEndWithNoTransformation: () => [ subIssuesHeader, [ generateList(subIssue)] ]
   };
 
   return mdRenderer(macroIssue.body || '', visitors);
