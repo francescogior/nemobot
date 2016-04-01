@@ -5,6 +5,7 @@ import {
   reviewStateLog,
   configForRepo
 } from '../utils';
+import { isPullRequestEvent, isIssueEvent } from '../validators';
 
 const labels = {
   macro: 'macro',
@@ -102,18 +103,17 @@ function syncPullRequestLabels(repoName, pull) {
 
 
 export default subject => {
-  const source = subject.filter(({ event }) => includes(['issues', 'pull_request'], event));
   // issues
-  source
-    .filter(({ body }) => body.issue)
+  subject
+    .filter(isIssueEvent)
     .subscribe(({ body: { issue, repository: repo } }) => {
       prettifierLog(`Updating labels of issue #${issue.number} in repo ${repo.name}`);
       processMacro(repo.name, issue);
     });
 
   // pulls
-  source
-    .filter(({ body }) => body.pull_request)
+  subject
+    .filter(isPullRequestEvent)
     .filter(({ body }) => !(body.pull_request.state === 'closed' && !body.pull_request.merged)) // ignore PRs closed without merge
     .subscribe(({ body: { pull_request: pull, repository: repo } }) => {
       prettifierLog(`Updating labels of pull request #${pull.number} in repo ${repo.name}`);

@@ -1,5 +1,6 @@
 import { configForRepo, prettifierLog } from '../utils';
 import request from 'request-promise';
+import { isPullRequestEvent } from '../validators';
 
 function addSuccessfulGifComment(repoName, pull) {
 
@@ -22,12 +23,11 @@ function addSuccessfulGifComment(repoName, pull) {
 }
 
 export default subject => {
-  const source = subject.filter(({ event }) => event === 'pull_request');
-
-  source
-  .filter(({ body }) => body.action === 'closed' && body.pull_request && body.pull_request.merged)
-  .subscribe(({ body: { pull_request: pull, repository: repo } }) => {
-    prettifierLog(`Adding GIF comment to pull request #${pull.number} in repo ${repo.name}`);
-    addSuccessfulGifComment(repo.name, pull);
-  });
+  subject
+    .filter(isPullRequestEvent)
+    .filter(({ body }) => body.action === 'closed' && body.pull_request && body.pull_request.merged)
+    .subscribe(({ body: { pull_request: pull, repository: repo } }) => {
+      prettifierLog(`Adding GIF comment to pull request #${pull.number} in repo ${repo.name}`);
+      addSuccessfulGifComment(repo.name, pull);
+    });
 };
