@@ -102,7 +102,7 @@ function syncPullRequestLabels(repoName, pull) {
 }
 
 
-export default subject => {
+export default ({ subject }) => {
   // issues
   subject
     .filter(isIssueEvent)

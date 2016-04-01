@@ -71,7 +71,7 @@ function generateSubIssuesParagraph(macroIssue, subIssue) {
 }
 
 // processors
-function processSubIssuesParagraph(repo, issue, subject) {
+function processSubIssuesParagraph(repo, issue, onNext) {
   const validArrows = ['←', '&larr;', '&#8592;', '&#x2190;'];
 
   const usedArrow = find(validArrows, arrow => startsWith(issue.body, `${arrow} #`));
@@ -95,18 +95,18 @@ function processSubIssuesParagraph(repo, issue, subject) {
           event: 'issues',
           body: { issue: { ...macroIssue, body: newBody }, repository: repo }
         };
-        subject.onNext(fakeWebhook);
+        onNext(fakeWebhook);
       })
       .catch(httpLog);
   }
 }
 
 
-export default subject => {
+export default ({ subject, onNext }) => {
   subject
     .filter(isIssueEvent)
     .subscribe(({ body: { issue, repository: repo } }) => {
       prettifierLog(`Updating macro issue of issue #${issue.number} in repo ${repo.name}`);
-      processSubIssuesParagraph(repo, issue, subject);
+      processSubIssuesParagraph(repo, issue, onNext);
     });
 };
