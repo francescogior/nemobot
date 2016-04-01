@@ -19,7 +19,7 @@ function addReminderIfMissingTopicLabel(repo, issue, action, onNext) {
         const repoRequiresTopicLabel = hasAtLeastOneTopicLabel(repoLabels);
         const issueIsMissingTopicLabel = !hasAtLeastOneTopicLabel(issue.labels);
         if (repoRequiresTopicLabel && issueIsMissingTopicLabel) {
-          onNext({ event: 'reminder-topic-label', body: { issue, repository: repo } }, 1000);
+          onNext({ event: 'reminder-topic-label', body: { issue, repository: repo } }, 10000);
         }
       });
   }
