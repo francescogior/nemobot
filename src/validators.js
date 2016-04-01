@@ -10,13 +10,17 @@ const isStruct = (StructType, x) => {
   }
 };
 
-const PullRequest = t.struct({ pull_request: t.Object });
+const PullRequest = t.struct({ pull_request: t.Object, repository: t.Object });
 
-const Issue = t.struct({ issue: t.Object });
+const Issue = t.struct({ issue: t.Object, repository: t.Object });
 
 const Event = t.struct({
   event: t.String,
-  body: t.Object
+  body: t.struct({
+    issue: t.maybe(t.Object),
+    pull_request: t.maybe(t.Object),
+    repository: t.Object
+  })
 });
 
 const PullRequestEvent = t.struct({
