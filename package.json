@@ -7,8 +7,9 @@
     "lint": "eslint src",
     "lint-fix": "eslint --fix src",
     "dev": "DEBUG=* nodemon --exec babel-node --presets es2015 src/index.js",
-    "clean": "rm -rf lib",
+    "clean": "rm -rf lib && mkdir lib",
     "build": "npm run clean && babel src --out-dir lib && cp config.json lib",
+    "watch": "npm run clean && cp config.json lib && babel src --out-dir lib --watch",
     "start": "DEBUG=* node lib/index.js"
   },
   "repository": {
