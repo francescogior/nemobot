@@ -31,7 +31,8 @@
     "marked-to-md": "^1.0.1",
     "octokat": "^0.4.16",
     "request-promise": "^2.0.0",
-    "rx": "^4.0.7"
+    "rx": "^4.0.7",
+    "tcomb": "^3.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.4.5",
