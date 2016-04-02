@@ -2,7 +2,7 @@ import { configForRepo, prettifierLog } from '../utils';
 import { some, includes } from 'lodash';
 import { isIssueEvent, isReminderEvent, isTopicReminderEvent } from '../validators';
 
-const topicLabels = ['web', 'api', 'escalapio', 'documentation'];
+const topicLabels = ['web', 'api', 'escalapio', 'documentation', 'iOS', 'QIA IS', 'QIA OD'];
 
 const hasAtLeastOneTopicLabel = labels => {
   const labelNames = labels.map(l => l.name);
