@@ -6,6 +6,7 @@ import {
   configForRepo
 } from '../utils';
 import mdRenderer from '../md-renderer';
+import { isIssueEvent } from '../validators';
 
 const TITLE = 'sub-issues';
 const MD_TITLE = `## ${TITLE}`;
@@ -103,7 +104,7 @@ function processSubIssuesParagraph(repo, issue, subject) {
 
 export default subject => {
   subject
-    .filter(({ body: { issue } }) => issue)
+    .filter(isIssueEvent)
     .subscribe(({ body: { issue, repository: repo } }) => {
       prettifierLog(`Updating macro issue of issue #${issue.number} in repo ${repo.name}`);
       processSubIssuesParagraph(repo, issue, subject);
