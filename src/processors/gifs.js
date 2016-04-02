@@ -22,7 +22,7 @@ function addSuccessfulGifComment(repoName, pull) {
 
 }
 
-export default subject => {
+export default ({ subject }) => {
   subject
     .filter(isPullRequestEvent)
     .filter(({ body }) => body.action === 'closed' && body.pull_request && body.pull_request.merged)
