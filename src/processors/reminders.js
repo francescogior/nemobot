@@ -1,16 +1,17 @@
 import { configForRepo, prettifierLog } from '../utils';
 import { some, includes } from 'lodash';
 import { isIssueEvent, isReminderEvent, isTopicReminderEvent } from '../validators';
-
-const topicLabels = ['web', 'api', 'escalapio', 'documentation', 'iOS', 'QIA IS', 'QIA OD'];
+import config from '../config';
 
 const hasAtLeastOneTopicLabel = labels => {
+  const { topicLabels } = config.reminders.missingTopicLabels;
   const labelNames = labels.map(l => l.name);
   return some(topicLabels, tl => includes(labelNames, tl));
 };
 
 function addReminderIfMissingTopicLabel(repo, issue, action, onNext) {
   if (action === 'opened') {
+    const { delay } = config.reminders.missingTopicLabels;
     const { github, org, name } = configForRepo(repo.name);
     const getRepoLabels = github.repos(org, name).labels.fetch;
 
@@ -20,7 +21,7 @@ function addReminderIfMissingTopicLabel(repo, issue, action, onNext) {
         const issueIsMissingTopicLabel = !hasAtLeastOneTopicLabel(issue.labels);
         if (repoRequiresTopicLabel && issueIsMissingTopicLabel) {
           prettifierLog(`Adding reminder about missing topic label for issue #${issue.number} in repo ${repo.name}`);
-          onNext({ event: 'reminder-topic-label', body: { issue, repository: repo } }, 10000);
+          onNext({ event: 'reminder-topic-label', body: { issue, repository: repo } }, delay);
         }
       });
   }
@@ -28,6 +29,7 @@ function addReminderIfMissingTopicLabel(repo, issue, action, onNext) {
 
 function addMissingTopicLabelComment(event, repoName, oldIssue) {
   if (isTopicReminderEvent(event)) {
+    const { topicLabels } = config.reminders.missingTopicLabels;
     const { github, org, name } = configForRepo(repoName);
     const getUpdatedIssue = github.repos(org, name).issues(oldIssue.number).fetch;
 
