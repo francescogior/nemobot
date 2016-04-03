@@ -7,5 +7,11 @@
     "token": "$OMNILAB_GITHUB_TOKEN",
     "apiURL": "https://github.omnilab.our.buildo.io/api/v3"
   }],
-  "labelsTemplate": "https://raw.githubusercontent.com/buildo/infra/master/templates/github-labels.json"
+  "labelsTemplate": "https://raw.githubusercontent.com/buildo/infra/master/templates/github-labels.json",
+  "reminders": {
+    "missingTopicLabels": {
+      "topicLabels": ["web", "api", "escalapio", "documentation", "iOS", "QIA IS", "QIA OD"],
+      "delay": 10000
+    }
+  }
 }
