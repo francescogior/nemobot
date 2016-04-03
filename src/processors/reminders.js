@@ -19,21 +19,23 @@ function addReminderIfMissingTopicLabel(repo, issue, action, onNext) {
         const repoRequiresTopicLabel = hasAtLeastOneTopicLabel(repoLabels);
         const issueIsMissingTopicLabel = !hasAtLeastOneTopicLabel(issue.labels);
         if (repoRequiresTopicLabel && issueIsMissingTopicLabel) {
+          prettifierLog(`Adding reminder about missing topic label for issue #${issue.number} in repo ${repo.name}`);
           onNext({ event: 'reminder-topic-label', body: { issue, repository: repo } }, 10000);
         }
       });
   }
 }
 
-function addMissingTopicLabelComment(event, repoName, issue) {
+function addMissingTopicLabelComment(event, repoName, oldIssue) {
   if (isTopicReminderEvent(event)) {
     const { github, org, name } = configForRepo(repoName);
-    const getUpdatedIssue = github.repos(org, name).issues(issue.number).fetch;
+    const getUpdatedIssue = github.repos(org, name).issues(oldIssue.number).fetch;
 
     getUpdatedIssue()
       .then(issue => {
         const issueIsMissingTopicLabel = !hasAtLeastOneTopicLabel(issue.labels);
         if (issueIsMissingTopicLabel) {
+          prettifierLog(`Reminding to add topic label on issue #${issue.number} in repo ${repoName}`);
           const topicLabelsStringified = topicLabels.map(l => `\`${l}\``).join(', ');
           github.repos(org, name).issues(issue.number).comments.create({
             body: `@${issue.user.login} don't forget to add a topic label (${topicLabelsStringified})`
