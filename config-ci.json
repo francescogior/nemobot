@@ -10,7 +10,7 @@
   "labelsTemplate": "https://raw.githubusercontent.com/buildo/infra/master/templates/github-labels.json",
   "reminders": {
     "missingTopicLabels": {
-      "topicLabels": ["web", "api", "escalapio", "documentation", "iOS", "QIA IS", "QIA OD"],
+      "topicLabels": ["web", "api", "escalapio", "documentation", "iOS", "QIA IS", "QIA OD", "omnilab-feedback"],
       "delay": 10000
     }
   }
