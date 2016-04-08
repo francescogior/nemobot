@@ -10,7 +10,7 @@ publish:
     username: $$QUAY_USERNAME
     password: $$QUAY_PASSWORD
     email: $$QUAY_EMAIL
-    repo: buildo/github-prettifier
+    repo: buildo/nemobot
     force_tag: true
     insecure: true
     load: deploy/image.tar
@@ -27,14 +27,14 @@ deploy:
     user: root
     port: 22
     commands:
-      - crane lift github-prettifier
+      - crane lift nemobot
     when:
       branch: master
 
 notify:
   slack_blame:
     token: $$SLACK_TOKEN
-    channel: "#github-prettifier"
+    channel: "#nemobot"
     failure:
       username: "Desolated Drone"
       icon: ":robot_face:"
