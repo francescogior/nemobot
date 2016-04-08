@@ -47,8 +47,18 @@ const TopicReminderEvent = t.struct({
   body: Issue
 });
 
+const HophopEvent = t.struct({
+  event: t.refinement(t.String, s => startsWith(s, 'hophop-')),
+  body: t.struct({
+    issue: t.maybe(t.Object),
+    pull_request: t.maybe(t.Object),
+    repository: t.Object
+  })
+});
+
 export const isEvent = x => isStruct(Event, x);
 export const isPullRequestEvent = x => isStruct(PullRequestEvent, x);
 export const isIssueEvent = x => isStruct(IssueEvent, x);
 export const isReminderEvent = x => isStruct(ReminderEvent, x);
 export const isTopicReminderEvent = x => isStruct(TopicReminderEvent, x);
+export const isHophopEvent = x => isStruct(HophopEvent, x);
