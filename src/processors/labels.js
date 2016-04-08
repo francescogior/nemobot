@@ -5,7 +5,7 @@ import {
   reviewStateLog,
   configForRepo
 } from '../utils';
-import { isPullRequestEvent, isIssueEvent } from '../validators';
+import { isPullRequestEvent, isIssueEvent, isHophopEvent } from '../validators';
 
 const labels = {
   macro: 'macro',
@@ -101,6 +101,15 @@ function syncPullRequestLabels(repoName, pull) {
   }
 }
 
+function processIssueWIP(repoName, issue) {
+  const { github, org, name } = configForRepo(repoName);
+  github.repos(org, name).issues(issue.number).fetch()
+    .then(_issue => {
+      addLabelsToIssue(repoName, [labels.wip], _issue).catch(httpLog);
+    })
+    .catch(httpLog);
+}
+
 
 export default ({ subject }) => {
   // issues
@@ -119,5 +128,14 @@ export default ({ subject }) => {
       prettifierLog(`Updating labels of pull request #${pull.number} in repo ${repo.name}`);
       processPullRequestState(repo.name, pull);
       syncPullRequestLabels(repo.name, pull);
+    });
+
+  // hophop issues
+  subject
+    .filter(isHophopEvent)
+    .filter(({ body: { issue } }) => issue)
+    .subscribe(({ body: { issue, repository: repo } }) => {
+      prettifierLog(`[hophop] Updating labels of issue #${issue.number} in repo ${repo.name}`);
+      processIssueWIP(repo.name, issue);
     });
 };
