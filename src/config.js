@@ -15,7 +15,8 @@ const Config = t.struct({
       topicLabels: t.list(t.String),
       delay: t.Number
     })
-  })
+  }),
+  platforms: t.list(t.String)
 }, 'Config');
 
 export default Config(configJSON);
