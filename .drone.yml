@@ -13,10 +13,6 @@ publish:
     repo: buildo/nemobot
     force_tag: true
     insecure: true
-    load: deploy/image.tar
-    save:
-      destination: deploy/image.tar
-      tag: latest
     tag:
       - latest
       - $$COMMIT
