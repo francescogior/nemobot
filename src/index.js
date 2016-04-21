@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import Rx from 'rx';
 import { find } from 'lodash';
 import processors from './processors';
+import getTemplates from './templates';
 import { isEvent } from './validators';
 import config from './config';
 
@@ -29,6 +30,10 @@ app.post('/', ({ body, headers }, res) => {
   } else {
     res.status(403).send('Forbidden');
   }
+});
+
+app.get('/templates', ({ query }, res) => {
+  res.send(getTemplates(query));
 });
 
 app.listen(3000);
