@@ -17,7 +17,7 @@ function addComputedQuery(templateObj) {
 
   return {
     ...templateObj,
-    computedQuery: `${querystring.stringify(others)}${[].concat(labels).map(l => `&labels[]=${l}`).join('')}}`
+    computedQuery: `${querystring.stringify(others)}${[].concat(labels).map(l => `&labels[]=${l}`).join('')}`
   };
 }
 
