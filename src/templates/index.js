@@ -41,7 +41,7 @@ function getBug({ labels = [], ...query }) {
     ...getGithubQuery(query),
     title,
     titleSelection: '{topic}',
-    labels: ['bug', ...labels],
+    labels: ['bug', ...[].concat(labels)],
     body: replaceVariablesInBody(bugTemplate, query)
   };
 }
@@ -60,7 +60,7 @@ function getDefect({ labels = [], ...query }) {
     ...getGithubQuery(query),
     title,
     titleSelection: '{topic}',
-    labels: ['defect', ...labels],
+    labels: ['defect', ...[].concat(labels)],
     body: replaceVariablesInBody(defectTemplate, query)
   };
 }
