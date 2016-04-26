@@ -1,5 +1,7 @@
 import t from 'tcomb';
-import { startsWith } from 'lodash';
+import { startsWith, find } from 'lodash';
+
+export const subIssueValidArrows = ['←', '&larr;', '&#8592;', '&#x2190;'];
 
 const isStruct = (StructType, x) => {
   try {
@@ -13,6 +15,16 @@ const isStruct = (StructType, x) => {
 const PullRequest = t.struct({ pull_request: t.Object, repository: t.Object });
 
 const Issue = t.struct({ issue: t.Object, repository: t.Object });
+
+const SubIssue = t.struct({
+  issue: t.refinement(t.Object, issue => !!find(subIssueValidArrows, arrow => startsWith(issue.body, `${arrow} #`))),
+  repository: t.Object
+});
+
+const MacroIssue = t.struct({
+  issue: t.refinement(t.Object, issue => !!find(issue.labels, { name: 'macro' })),
+  repository: t.Object
+});
 
 const Event = t.struct({
   event: t.String,
@@ -31,6 +43,16 @@ const PullRequestEvent = t.struct({
 const IssueEvent = t.struct({
   event: t.enums.of(['issues']),
   body: Issue
+});
+
+const SubIssueEvent = t.struct({
+  event: t.enums.of(['issues']),
+  body: SubIssue
+});
+
+const MacroIssueEvent = t.struct({
+  event: t.enums.of(['issues']),
+  body: MacroIssue
 });
 
 const ReminderEvent = t.struct({
@@ -59,6 +81,8 @@ const HophopEvent = t.struct({
 export const isEvent = x => isStruct(Event, x);
 export const isPullRequestEvent = x => isStruct(PullRequestEvent, x);
 export const isIssueEvent = x => isStruct(IssueEvent, x);
+export const isSubIssueEvent = x => isStruct(SubIssueEvent, x);
+export const isMacroIssueEvent = x => isStruct(MacroIssueEvent, x);
 export const isReminderEvent = x => isStruct(ReminderEvent, x);
 export const isTopicReminderEvent = x => isStruct(TopicReminderEvent, x);
 export const isHophopEvent = x => isStruct(HophopEvent, x);

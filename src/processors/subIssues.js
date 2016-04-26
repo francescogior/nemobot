@@ -6,12 +6,19 @@ import {
   configForRepo
 } from '../utils';
 import mdRenderer from '../md-renderer';
-import { isIssueEvent } from '../validators';
+import { isSubIssueEvent, subIssueValidArrows } from '../validators';
 
 const TITLE = 'sub-issues';
 const MD_TITLE = `## ${TITLE}`;
 
 // utils
+function getParentIssueNumber(issue) {
+  const usedArrow = find(subIssueValidArrows, arrow => startsWith(issue.body, `${arrow} #`));
+  const parentIssueNumberRegExp = new RegExp(`${usedArrow} #(\\d+)`);
+  const [, parentIssueNumber] = issue.body.match(parentIssueNumberRegExp) || [];
+  return parentIssueNumber;
+}
+
 function updateIssueBody(repoName, body, issue) {
   const { github, org, name } = configForRepo(repoName);
   github.repos(org, name).issues(issue.number).update({ body: body.replace(/\n\n+/g, '\n\n').trim() }); // max one empty line
@@ -72,15 +79,8 @@ function generateSubIssuesParagraph(macroIssue, subIssue) {
 
 // processors
 function processSubIssuesParagraph(repo, issue, onNext) {
-  const validArrows = ['←', '&larr;', '&#8592;', '&#x2190;'];
-
-  const usedArrow = find(validArrows, arrow => startsWith(issue.body, `${arrow} #`));
-  const isSubIssue = !!usedArrow;
-  const parentIssueNumberRegExp = new RegExp(`${usedArrow} #(\\d+)`);
-
-  const [, parentIssueNumber] = (isSubIssue && issue.body.match(parentIssueNumberRegExp)) || [];
-
-  if (isSubIssue && parentIssueNumber) {
+  const parentIssueNumber = getParentIssueNumber(issue);
+  if (parentIssueNumber) {
     reviewStateLog(`Updating sub-issues paragraph in issue #${parentIssueNumber} from repo ${repo.name}`);
     const { github, org, name } = configForRepo(repo.name);
 
@@ -101,10 +101,9 @@ function processSubIssuesParagraph(repo, issue, onNext) {
   }
 }
 
-
 export default ({ subject, onNext }) => {
   subject
-    .filter(isIssueEvent)
+    .filter(isSubIssueEvent)
     .subscribe(({ body: { issue, repository: repo } }) => {
       prettifierLog(`Updating macro issue of issue #${issue.number} in repo ${repo.name}`);
       processSubIssuesParagraph(repo, issue, onNext);
