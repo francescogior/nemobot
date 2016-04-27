@@ -14,7 +14,7 @@ function addSuccessfulGifComment(repoName, pull) {
     },
     json: true
   }).then(res => {
-    const gifUrl = res.data.image_url;
+    const gifUrl = res.data.image_url.replace('http://', 'https://');
     github.repos(org, name).issues(pull.number).comments.create({
       body: `![](${gifUrl})`
     });
