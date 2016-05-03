@@ -7,6 +7,7 @@ const bugTemplate = fs.readFileSync('./templates/bug.md').toString();
 const featureTemplate = fs.readFileSync('./templates/feature.md').toString();
 const defectTemplate = fs.readFileSync('./templates/defect.md').toString();
 const subIssueTemplate = fs.readFileSync('./templates/sub-issue.md').toString();
+const PRTemplate = fs.readFileSync('./templates/pr.md').toString();
 
 const title = '[{topic}] {title}';
 
@@ -74,6 +75,12 @@ function getSubIssue({ topic, ...query }) {
   };
 }
 
+function getPR(query) {
+  return {
+    body: replaceVariablesInBody(PRTemplate, query)
+  };
+}
+
 export default (query) => {
   prettifierLog(`Serving templates`);
   const templates = {
@@ -81,7 +88,8 @@ export default (query) => {
     defect: addComputedQuery(getDefect(query)),
     feature: addComputedQuery(getFeature(query)),
     subIssue: addComputedQuery(getSubIssue(query)),
-    standard: addComputedQuery(getStandard(query))
+    standard: addComputedQuery(getStandard(query)),
+    pr: addComputedQuery(getPR(query))
   };
 
   const allTemplates = !templates[query.t];
