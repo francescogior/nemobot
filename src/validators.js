@@ -69,6 +69,11 @@ const TopicReminderEvent = t.struct({
   body: Issue
 });
 
+const TestPlanReminderEvent = t.struct({
+  event: t.enums.of(['reminder-test-plan']),
+  body: PullRequest
+});
+
 const HophopEvent = t.struct({
   event: t.refinement(t.String, s => startsWith(s, 'hophop-')),
   body: t.struct({
@@ -85,4 +90,5 @@ export const isSubIssueEvent = x => isStruct(SubIssueEvent, x);
 export const isMacroIssueEvent = x => isStruct(MacroIssueEvent, x);
 export const isReminderEvent = x => isStruct(ReminderEvent, x);
 export const isTopicReminderEvent = x => isStruct(TopicReminderEvent, x);
+export const isTestPlanReminderEvent = x => isStruct(TestPlanReminderEvent, x);
 export const isHophopEvent = x => isStruct(HophopEvent, x);
