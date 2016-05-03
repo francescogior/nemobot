@@ -1,7 +1,16 @@
+import fs from 'fs';
 import { configForRepo, prettifierLog } from '../utils';
 import { some, includes, find } from 'lodash';
-import { isIssueEvent, isReminderEvent, isTopicReminderEvent } from '../validators';
+import {
+  isIssueEvent,
+  isPullRequestEvent,
+  isReminderEvent,
+  isTopicReminderEvent,
+  isTestPlanReminderEvent
+} from '../validators';
 import config from '../config';
+
+const PRTemplate = fs.readFileSync('./templates/pr.md').toString();
 
 const hasAtLeastOneTopicLabel = labels => {
   const { topicLabels } = config.reminders.missingTopicLabels;
@@ -51,6 +60,28 @@ function addMissingTopicLabelComment(event, repoName, oldIssue) {
             });
         }
       });
+  }
+}
+
+function addReminderIfMissingTestPlan(repo, pull, action, onNext) {
+  if (action === 'assigned') {
+    const delay = 0; // remind test plan as soon as PR is assigned
+    const TestPlanTemplate = PRTemplate.replace('Issue #$associatedIssueNumber\n\n', '');
+    if (includes(pull.body, TestPlanTemplate)) {
+      prettifierLog(`Adding reminder for missing test plan in PR #${pull.number} in repo ${repo.name}`);
+      onNext({ event: 'reminder-test-plan', body: { pull, repository: repo } }, delay);
+    }
+  }
+}
+
+function addMissingTestPlanComment(event, repoName, oldPull) {
+  if (isTestPlanReminderEvent(event)) {
+    const { github, org, name } = configForRepo(repoName);
+
+    // using oldPull as we're reminding test plan as soon as PR is assigned (delay is 0)
+    github.repos(org, name).issues(oldPull.number).comments.create({
+      body: `@${oldPull.user.login} don't forget to add a test plan`
+    });
   }
 }
 
