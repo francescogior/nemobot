@@ -1,5 +1,5 @@
 import { configForRepo, prettifierLog } from '../utils';
-import { some, includes } from 'lodash';
+import { some, includes, find } from 'lodash';
 import { isIssueEvent, isReminderEvent, isTopicReminderEvent } from '../validators';
 import config from '../config';
 
@@ -9,13 +9,16 @@ const hasAtLeastOneTopicLabel = labels => {
   return some(topicLabels, tl => includes(labelNames, tl));
 };
 
+function getRepoLabels(repoName) {
+  const { github, org, name } = configForRepo(repoName);
+  return github.repos(org, name).labels.fetch();
+}
+
 function addReminderIfMissingTopicLabel(repo, issue, action, onNext) {
   if (action === 'opened') {
     const { delay } = config.reminders.missingTopicLabels;
-    const { github, org, name } = configForRepo(repo.name);
-    const getRepoLabels = github.repos(org, name).labels.fetch;
 
-    getRepoLabels()
+    getRepoLabels(repo.name)
       .then(repoLabels => {
         const repoRequiresTopicLabel = hasAtLeastOneTopicLabel(repoLabels);
         const issueIsMissingTopicLabel = !hasAtLeastOneTopicLabel(issue.labels);
@@ -38,10 +41,14 @@ function addMissingTopicLabelComment(event, repoName, oldIssue) {
         const issueIsMissingTopicLabel = !hasAtLeastOneTopicLabel(issue.labels);
         if (issueIsMissingTopicLabel) {
           prettifierLog(`Reminding to add topic label on issue #${issue.number} in repo ${repoName}`);
-          const topicLabelsStringified = topicLabels.map(l => `\`${l}\``).join(', ');
-          github.repos(org, name).issues(issue.number).comments.create({
-            body: `@${issue.user.login} don't forget to add a topic label (${topicLabelsStringified})`
-          });
+          getRepoLabels(repoName)
+            .then(repoLabels => {
+              const repoTopicLabels = topicLabels.filter(l => find(repoLabels, { name: l }));
+              const topicLabelsStringified = repoTopicLabels.map(l => `\`${l}\``).join(', ');
+              github.repos(org, name).issues(issue.number).comments.create({
+                body: `@${issue.user.login} don't forget to add a topic label (${topicLabelsStringified})`
+              });
+            });
         }
       });
   }
