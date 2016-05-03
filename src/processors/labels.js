@@ -50,6 +50,22 @@ function processMacro(repoName, issue) {
   }
 }
 
+function cleanClosedIssueLabels(repoName, issue) {
+  if (issue.state === 'closed') {
+    removeLabelFromIssue(repoName, labels.inReview, issue).catch(httpLog);
+    removeLabelFromIssue(repoName, labels.wip, issue).catch(httpLog);
+  }
+}
+
+function cleanClosedPRLabels(repoName, pull) {
+  if (pull.state === 'closed') {
+    const { github, org, name } = configForRepo(repoName);
+    github.repos(org, name).issues(pull.number).fetch()
+      .then(issue => cleanClosedIssueLabels(repoName, issue));
+  }
+}
+
+
 function processPullRequestState(repoName, pull) {
   const issueNumber = getAssociatedIssueNumber(pull);
   const isInReview = !!pull.assignee;
@@ -59,8 +75,7 @@ function processPullRequestState(repoName, pull) {
     github.repos(org, name).issues(number).fetch()
       .then(_issue => {
         if (_issue.state === 'closed') {
-          removeLabelFromIssue(repoName, labels.inReview, _issue).catch(httpLog);
-          removeLabelFromIssue(repoName, labels.wip, _issue).catch(httpLog);
+          return; // let cleanClosedIssueLabels/cleanClosedPRLabels do the job
         } else if (isInReview) {
           addLabelsToIssue(repoName, [labels.inReview], _issue).catch(httpLog);
           removeLabelFromIssue(repoName, labels.wip, _issue).catch(httpLog);
@@ -118,6 +133,7 @@ export default ({ subject }) => {
     .subscribe(({ body: { issue, repository: repo } }) => {
       prettifierLog(`Updating labels of issue #${issue.number} in repo ${repo.name}`);
       processMacro(repo.name, issue);
+      cleanClosedIssueLabels(repo.name, issue);
     });
 
   // pulls
@@ -128,6 +144,7 @@ export default ({ subject }) => {
       prettifierLog(`Updating labels of pull request #${pull.number} in repo ${repo.name}`);
       processPullRequestState(repo.name, pull);
       syncPullRequestLabels(repo.name, pull);
+      cleanClosedPRLabels(repo.name, pull);
     });
 
   // hophop issues
