@@ -67,9 +67,11 @@ function addReminderIfMissingTestPlan(repo, pull, action, onNext) {
   if (action === 'assigned') {
     const delay = 0; // remind test plan as soon as PR is assigned
     const TestPlanTemplate = PRTemplate.replace('Issue #$associatedIssueNumber\n\n', '');
-    if (includes(pull.body, TestPlanTemplate)) {
+    const cleanString = string => string.replace(/\s/ig, '');
+
+    if (includes(cleanString(pull.body), cleanString(TestPlanTemplate))) {
       prettifierLog(`Adding reminder for missing test plan in PR #${pull.number} in repo ${repo.name}`);
-      onNext({ event: 'reminder-test-plan', body: { pull, repository: repo } }, delay);
+      onNext({ event: 'reminder-test-plan', body: { pull_request: pull, repository: repo } }, delay);
     }
   }
 }
