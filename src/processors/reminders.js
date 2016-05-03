@@ -94,13 +94,32 @@ export default ({ subject, onNext }) => {
       addReminderIfMissingTopicLabel(repo, issue, action, onNext);
     });
 
-  // reminders
+  // issue reminders
   subject
     .filter(isReminderEvent)
+    .filter(({ body: { issue } }) => issue)
     .subscribe(event => {
       const { body: { issue, repository: repo } } = event;
       prettifierLog(`Trigger reminders for issue #${issue.number} in repo ${repo.name}`);
       addMissingTopicLabelComment(event, repo.name, issue);
+    });
+
+  // pulls
+  subject
+    .filter(isPullRequestEvent)
+    .subscribe(({ body: { action, pull_request: pull, repository: repo } }) => {
+      prettifierLog(`Adding reminders to PR #${pull.number} in repo ${repo.name}`);
+      addReminderIfMissingTestPlan(repo, pull, action, onNext);
+    });
+
+  // pull reminders
+  subject
+    .filter(isReminderEvent)
+    .filter(({ body: { pull_request } }) => pull_request)
+    .subscribe(event => {
+      const { body: { pull_request: pull, repository: repo } } = event;
+      prettifierLog(`Trigger reminders for PR #${pull.number} in repo ${repo.name}`);
+      addMissingTestPlanComment(event, repo.name, pull);
     });
 
 };
