@@ -1,6 +1,6 @@
 import marked from 'marked-ast';
 import MdRenderer from 'marked-to-md';
-import { includes } from 'lodash';
+import { includes, find } from 'lodash';
 
 
 function transform(ast, visitors) {
@@ -26,6 +26,19 @@ function transform(ast, visitors) {
   });
 
   return { transformedAst, transformed };
+}
+
+export function getSubIssuesList(input) {
+  const ast = marked.parse(input);
+  let currentSection;
+
+  return find(ast, node => {
+    // keep track of the current section
+    if (node.type === 'heading') {
+      currentSection = node;
+    }
+    return currentSection && includes(currentSection.text[0], 'sub-issues') && node.type === 'list';
+  });
 }
 
 export default (input, visitors) => {
