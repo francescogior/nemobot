@@ -13,7 +13,7 @@ const title = '[{topic}] {title}';
 
 
 function addComputedQuery(templateObj) {
-  const { labels = [], ..._others} = templateObj;
+  const { labels = [], ..._others } = templateObj;
   const others = omitBy(_others, x => !x);
 
   return {
@@ -82,7 +82,7 @@ function getPR(query) {
 }
 
 export default (query) => {
-  prettifierLog(`Serving templates`);
+  prettifierLog('Serving templates');
   const templates = {
     bug: addComputedQuery(getBug(query)),
     defect: addComputedQuery(getDefect(query)),
