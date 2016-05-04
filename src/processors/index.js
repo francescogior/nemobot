@@ -3,5 +3,6 @@ export default [
   require('./subIssues').default,
   require('./gifs').default,
   require('./reminders').default,
-  require('./state').default
+  require('./state').default,
+  require('./splitMacroIssue').default
 ];
