@@ -1,5 +1,5 @@
 {
-  "name": "github-prettifier",
+  "name": "nemobot",
   "version": "0.1.0",
   "description": "github api based tool that enforces style conventions in the issue tracker",
   "main": "lib/index.js",
@@ -10,36 +10,39 @@
     "clean": "rm -rf lib && mkdir lib",
     "build": "npm run clean && babel src --out-dir lib && cp config.json lib",
     "watch": "npm run clean && cp config.json lib && babel src --out-dir lib --watch",
-    "start": "DEBUG=* node lib/index.js"
+    "start": "DEBUG=prettifier*,http,express:* node lib/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/buildo/github-prettifier.git"
+    "url": "git+https://github.com/buildo/nemobot.git"
   },
   "author": "buildo",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/buildo/github-prettifier/issues"
+    "url": "https://github.com/buildo/nemobot/issues"
   },
-  "homepage": "https://github.com/buildo/github-prettifier#readme",
+  "homepage": "https://github.com/buildo/nemobot#readme",
   "dependencies": {
+    "babel-eslint": "^6.0.3",
     "body-parser": "^1.15.0",
     "debug": "^2.2.0",
     "express": "^4.13.4",
     "lodash": "^4.5.0",
     "marked-ast": "^0.3.0",
     "marked-to-md": "^1.0.1",
-    "octokat": "^0.4.16",
+    "octokat": "^0.4.17",
     "request-promise": "^2.0.0",
     "rx": "^4.0.7",
     "tcomb": "^3.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.4.5",
-    "babel-plugin-lodash": "2.1.0",
+    "babel-core": "^6.4.5",
+    "babel-polyfill": "^6.4.5",
+    "babel-plugin-lodash": "2.2.1",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-stage-0": "^6.5.0",
-    "eslint": "^2.1.0",
+    "eslint": "^2.9.0",
     "eslint-config-buildo": "github:buildo/eslint-config-buildo"
   }
 }
