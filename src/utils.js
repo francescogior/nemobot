@@ -1,7 +1,7 @@
 import Octokat from 'octokat';
 import debug from 'debug';
 import { find } from 'lodash';
-import config from './config.json';
+import config from './config.js';
 
 
 export const prettifierLog = debug('prettifier');
