@@ -1,4 +1,4 @@
-import { includes } from 'lodash';
+import { find, includes } from 'lodash';
 import { configForRepo, prettifierLog } from '../utils';
 import { isBranchPreviewEvent } from '../validators';
 
@@ -8,7 +8,7 @@ async function addBranchPreviewComment(repoName, pullRequestNumber, previewURL) 
   const { github, org, name } = configForRepo(repoName);
 
   const comments = await github.repos(org, name).issues(pullRequestNumber).comments.fetch();
-  const alreadyHasBranchPreviewComment = includes(comments.map(c => c.body), MARKER);
+  const alreadyHasBranchPreviewComment = !!find(comments.map(c => c.body), c => includes(c, MARKER));
 
   if (!alreadyHasBranchPreviewComment) {
     prettifierLog(`Adding branch-preview comment to pull request #${pullRequestNumber} in repo ${repoName}`);
