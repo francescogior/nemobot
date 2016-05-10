@@ -105,18 +105,15 @@ async function splitMacroIssue(repoName, macroIssueNumber) {
   const subIssues = await getSubIssues(repoName, originalMacroIssue);
   const openSubIssues = filter(subIssues, { state: 'open' });
   const closedSubIssues = filter(subIssues, { state: 'closed' });
-  console.log('0');
+
   // remove sub-issues paragraph in originalMacroIssue to avoid conflicts
   await removeSubIssuePragraph(repoName, originalMacroIssue);
-  console.log('1');
+
   const { openMacroIssue, closedMacroIssue } = await createOpenAndClosedMacroIssues(repoName, macroIssueNumber);
-  console.log('2');
   // openMacroIssue
   await populateNewMacroIssue(repoName, macroIssueNumber, openMacroIssue.number, openSubIssues);
-  console.log('3');
   // closedMacroIssue
   await populateNewMacroIssue(repoName, macroIssueNumber, closedMacroIssue.number, closedSubIssues);
-  console.log('4');
 }
 
 export default ({ subject }) => {
