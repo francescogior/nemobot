@@ -19,9 +19,12 @@ function getParentIssueNumber(issue) {
   return parentIssueNumber;
 }
 
-function updateIssueBody(repoName, body, issue) {
-  const { github, org, name } = configForRepo(repoName);
-  github.repos(org, name).issues(issue.number).update({ body: body.replace(/\n\n+/g, '\n\n').trim() }); // max one empty line
+export function updateIssueBody(repoName, body, issue) {
+  const cleanedBody = body.replace(/\n\n+/g, '\n\n').trim(); // max one empty line
+  if (cleanedBody !== issue.body) {
+    const { github, org, name } = configForRepo(repoName);
+    return github.repos(org, name).issues(issue.number).update({ body: cleanedBody });
+  }
 }
 
 function generateListItem({ state, title, number }) {
@@ -62,7 +65,7 @@ function patchSubIssuesParagraph(macroIssue, subIssue) {
   return mdRenderer(macroIssue.body, visitors);
 }
 
-function generateSubIssuesParagraph(macroIssue, subIssue) {
+export function generateSubIssuesParagraph(macroIssue, subIssue) {
   const subIssuesHeader = {
     type: 'heading',
     text: [ TITLE ],
@@ -77,6 +80,12 @@ function generateSubIssuesParagraph(macroIssue, subIssue) {
   return mdRenderer(macroIssue.body || '', visitors);
 }
 
+export function getNewBodyWithUpdatedSubIssues(macroIssue, subIssue) {
+  return includes(macroIssue.body, MD_TITLE) ?
+    patchSubIssuesParagraph(macroIssue, subIssue) :
+    generateSubIssuesParagraph(macroIssue, subIssue);
+}
+
 // processors
 function processSubIssuesParagraph(repo, issue, onNext) {
   const parentIssueNumber = getParentIssueNumber(issue);
@@ -86,9 +95,7 @@ function processSubIssuesParagraph(repo, issue, onNext) {
 
     github.repos(org, name).issues(parentIssueNumber).fetch()
       .then(macroIssue => {
-        const newBody = includes(macroIssue.body, MD_TITLE) ?
-          patchSubIssuesParagraph(macroIssue, issue) :
-          generateSubIssuesParagraph(macroIssue, issue);
+        const newBody = getNewBodyWithUpdatedSubIssues(macroIssue, issue);
 
         updateIssueBody(repo.name, newBody, macroIssue);
         const fakeWebhook = {

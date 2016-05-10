@@ -5,7 +5,7 @@ export const subIssueValidArrows = ['←', '&larr;', '&#8592;', '&#x2190;'];
 
 const isStruct = (StructType, x) => {
   try {
-    StructType({...x});
+    StructType({ ...x });
     return true;
   } catch (e) {
     return false;
@@ -83,6 +83,19 @@ const HophopEvent = t.struct({
   })
 });
 
+const ExtensionEvent = t.struct({
+  event: t.refinement(t.String, s => startsWith(s, 'extension-')),
+  body: t.Object
+});
+
+const SplitMacroIssueEvent = t.struct({
+  event: t.enums.of(['extension-split-macro-issue']),
+  body: t.struct({
+    macroIssueNumber: t.Number,
+    repoName: t.String
+  })
+});
+
 export const isEvent = x => isStruct(Event, x);
 export const isPullRequestEvent = x => isStruct(PullRequestEvent, x);
 export const isIssueEvent = x => isStruct(IssueEvent, x);
@@ -92,3 +105,5 @@ export const isReminderEvent = x => isStruct(ReminderEvent, x);
 export const isTopicReminderEvent = x => isStruct(TopicReminderEvent, x);
 export const isTestPlanReminderEvent = x => isStruct(TestPlanReminderEvent, x);
 export const isHophopEvent = x => isStruct(HophopEvent, x);
+export const isExtensionEvent = x => isStruct(ExtensionEvent, x);
+export const isSplitMacroIssueEvent = x => isStruct(SplitMacroIssueEvent, x);

@@ -1,17 +1,19 @@
+import 'babel-core/register';
+import 'babel-polyfill';
 import express from 'express';
 import bodyParser from 'body-parser';
 import Rx from 'rx';
 import { find } from 'lodash';
 import processors from './processors';
 import getTemplates from './templates';
-import { isEvent } from './validators';
+import { isEvent, isExtensionEvent } from './validators';
 import config from './config';
 
 const platforms = config.platforms.map(p => `x-${p}-event`);
 const subject = new Rx.Subject();
 
 const onNext = (event, delay) => {
-  if (isEvent(event)) {
+  if (isEvent(event) || isExtensionEvent(event)) {
     setTimeout(() => subject.onNext(event), delay);
   }
 };

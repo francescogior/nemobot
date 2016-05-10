@@ -16,6 +16,7 @@
   },
   "platforms": [
     "github",
-    "hophop"
+    "hophop",
+    "extension"
   ]
 }
