@@ -13,13 +13,13 @@ async function addBranchPreviewComment(repoName, pullRequestNumber, previewURL) 
   if (!alreadyHasBranchPreviewComment) {
     prettifierLog(`Adding branch-preview comment to pull request #${pullRequestNumber} in repo ${repoName}`);
 
-    const LINK = `### 🐥 [preview this branch](${previewURL}`;
-    const IE_LINK = `### 💩 [preview this branch on IE](https://www.browserling.com/browse/win/7/ie/11/${previewURL}`;
+    const LINK = `### 🐥 [preview this branch](${previewURL})`;
+    const IE_LINK = `### 💩 [preview this branch on IE](https://www.browserling.com/browse/win/7/ie/11/${previewURL})`;
     const CORS_REMINDER = '(remember to [disable CORS](https://chrome.google.com/webstore/detail/allow-control-allow-origi/nlfbmbojpeacfghkpbjhddihlkkiljbi))';
     const API_REMINDER = '*N.B. this runs against the __master__ version of the API*';
 
     github.repos(org, name).issues(pullRequestNumber).comments.create({
-      body: `${MARKER}${[LINK, IE_LINK, CORS_REMINDER, API_REMINDER].join('\n')}`
+      body: `${[MARKER, LINK, IE_LINK, CORS_REMINDER, API_REMINDER].join('\n')}`
     });
   }
 }
