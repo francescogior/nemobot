@@ -96,6 +96,20 @@ const SplitMacroIssueEvent = t.struct({
   })
 });
 
+const DroneEvent = t.struct({
+  event: t.refinement(t.String, s => startsWith(s, 'drone-')),
+  body: t.Object
+});
+
+const BranchPreviewEvent = t.struct({
+  event: t.enums.of(['drone-branch-preview']),
+  body: t.struct({
+    pullRequestNumber: t.Number,
+    repoName: t.String,
+    previewURL: t.String
+  })
+});
+
 export const isEvent = x => isStruct(Event, x);
 export const isPullRequestEvent = x => isStruct(PullRequestEvent, x);
 export const isIssueEvent = x => isStruct(IssueEvent, x);
@@ -107,3 +121,5 @@ export const isTestPlanReminderEvent = x => isStruct(TestPlanReminderEvent, x);
 export const isHophopEvent = x => isStruct(HophopEvent, x);
 export const isExtensionEvent = x => isStruct(ExtensionEvent, x);
 export const isSplitMacroIssueEvent = x => isStruct(SplitMacroIssueEvent, x);
+export const isDroneEvent = x => isStruct(DroneEvent, x);
+export const isBranchPreviewEvent = x => isStruct(BranchPreviewEvent, x);
