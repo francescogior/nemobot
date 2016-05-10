@@ -26,7 +26,7 @@ const MacroIssue = t.struct({
   repository: t.Object
 });
 
-const Event = t.struct({
+const GithubEvent = t.struct({
   event: t.String,
   body: t.struct({
     issue: t.maybe(t.Object),
@@ -110,7 +110,7 @@ const BranchPreviewEvent = t.struct({
   })
 });
 
-export const isEvent = x => isStruct(Event, x);
+export const isGithubEvent = x => isStruct(GithubEvent, x);
 export const isPullRequestEvent = x => isStruct(PullRequestEvent, x);
 export const isIssueEvent = x => isStruct(IssueEvent, x);
 export const isSubIssueEvent = x => isStruct(SubIssueEvent, x);
