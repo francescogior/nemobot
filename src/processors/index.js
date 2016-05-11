@@ -4,5 +4,6 @@ export default [
   require('./gifs').default,
   require('./reminders').default,
   require('./state').default,
-  require('./splitMacroIssue').default
+  require('./splitMacroIssue').default,
+  require('./branchPreview').default
 ];

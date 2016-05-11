@@ -3,17 +3,22 @@ import 'babel-polyfill';
 import express from 'express';
 import bodyParser from 'body-parser';
 import Rx from 'rx';
-import { find } from 'lodash';
+import { find, some, upperFirst } from 'lodash';
 import processors from './processors';
 import getTemplates from './templates';
-import { isEvent, isExtensionEvent } from './validators';
+import * as validators from './validators';
 import config from './config';
 
 const platforms = config.platforms.map(p => `x-${p}-event`);
 const subject = new Rx.Subject();
 
+const isEvent = (x) => {
+  const majorValidators = config.platforms.map(p => `is${upperFirst(p)}Event`);
+  return some(majorValidators, v => validators[v](x));
+};
+
 const onNext = (event, delay) => {
-  if (isEvent(event) || isExtensionEvent(event)) {
+  if (isEvent(event)) {
     setTimeout(() => subject.onNext(event), delay);
   }
 };

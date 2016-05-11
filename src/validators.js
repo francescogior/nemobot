@@ -26,7 +26,7 @@ const MacroIssue = t.struct({
   repository: t.Object
 });
 
-const Event = t.struct({
+const GithubEvent = t.struct({
   event: t.String,
   body: t.struct({
     issue: t.maybe(t.Object),
@@ -96,7 +96,21 @@ const SplitMacroIssueEvent = t.struct({
   })
 });
 
-export const isEvent = x => isStruct(Event, x);
+const DroneEvent = t.struct({
+  event: t.refinement(t.String, s => startsWith(s, 'drone-')),
+  body: t.Object
+});
+
+const BranchPreviewEvent = t.struct({
+  event: t.enums.of(['drone-branch-preview']),
+  body: t.struct({
+    pullRequestNumber: t.Number,
+    repoName: t.String,
+    previewURL: t.String
+  })
+});
+
+export const isGithubEvent = x => isStruct(GithubEvent, x);
 export const isPullRequestEvent = x => isStruct(PullRequestEvent, x);
 export const isIssueEvent = x => isStruct(IssueEvent, x);
 export const isSubIssueEvent = x => isStruct(SubIssueEvent, x);
@@ -107,3 +121,5 @@ export const isTestPlanReminderEvent = x => isStruct(TestPlanReminderEvent, x);
 export const isHophopEvent = x => isStruct(HophopEvent, x);
 export const isExtensionEvent = x => isStruct(ExtensionEvent, x);
 export const isSplitMacroIssueEvent = x => isStruct(SplitMacroIssueEvent, x);
+export const isDroneEvent = x => isStruct(DroneEvent, x);
+export const isBranchPreviewEvent = x => isStruct(BranchPreviewEvent, x);
